@@ -561,6 +561,7 @@
             }
             if (gameState.autoClicker.active) {
                 status.classList.remove('locked');
+                status.style.display = 'flex';
                 if (gameState.autoClicker.enabled) {
                     startAutoClicker();
                     status.classList.add('active');
@@ -604,9 +605,11 @@
                     };
 
                     if (gameState.autoClicker.active) {
-                        const status = document.getElementById('autoClickerStatus');
-                        status.style.visibility = 'visible';
-                        status.style.opacity = '1';
+                        document.getElementById('autoClickerItem').style.display = 'none';
+                        document.getElementById('autoClickerUpgrade').style.display = 'flex';
+                        if (gameState.autoClicker.enabled) {
+                            startAutoClicker();
+                        }
                     }
                     
                     updateDisplay();
