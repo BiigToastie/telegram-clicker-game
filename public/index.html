@@ -604,7 +604,7 @@
 
     <div class="leaderboard-container">
         <div class="leaderboard-header">
-            <h2>🏆 Bestenliste</h2>
+            <h2>�� Bestenliste</h2>
             <span class="your-rank">Dein Rang: <span id="yourRank">-</span></span>
         </div>
         <div class="leaderboard-list" id="leaderboardList">
@@ -677,7 +677,70 @@
                 }
             }
 
+            // Lade Spielerdaten
+            async function loadUserData() {
+                try {
+                    const telegramId = tg.initDataUnsafe?.user?.id;
+                    if (!telegramId) return;
+
+                    const response = await fetch(`/api/user/${telegramId}`);
+                    const userData = await response.json();
+                    
+                    gameState = {
+                        coins: Number(userData.coins || 0),
+                        multiplier: Number(userData.multiplier || 0.1),
+                        level: {
+                            current: Number(userData.level?.current || 0),
+                            exp: Number(userData.level?.exp || 0),
+                            nextLevel: Number(userData.level?.nextLevel || 100)
+                        },
+                        upgrades: {
+                            multiplier: {
+                                cost: Number(userData.upgrades?.multiplier?.cost || 5),
+                                increment: Number(userData.upgrades?.multiplier?.increment || 0.1),
+                                costIncrease: Number(userData.upgrades?.multiplier?.costIncrease || 1.3)
+                            },
+                            autoClicker: {
+                                active: Boolean(userData.upgrades?.autoClicker?.active || false),
+                                enabled: Boolean(userData.upgrades?.autoClicker?.enabled || false),
+                                cost: Number(userData.upgrades?.autoClicker?.cost || 100),
+                                value: Number(userData.upgrades?.autoClicker?.value || 0.1),
+                                upgradeCost: Number(userData.upgrades?.autoClicker?.upgradeCost || 200),
+                                costIncrease: Number(userData.upgrades?.autoClicker?.costIncrease || 1.5),
+                                lastUpdate: Number(userData.upgrades?.autoClicker?.lastUpdate || Date.now())
+                            }
+                        }
+                    };
+
+                    if (gameState.upgrades.autoClicker.active) {
+                        document.getElementById('autoClickerBuy').style.display = 'none';
+                        document.getElementById('autoClickerUpgrade').style.display = 'flex';
+                        const autoClickValue = document.getElementById('autoClickValue');
+                        autoClickValue.style.display = 'inline-block';
+                        calculateOfflineProgress();
+                        if (gameState.upgrades.autoClicker.enabled) {
+                            startAutoClicker();
+                        }
+                    }
+                    
+                    updateDisplay();
+                } catch (error) {
+                    console.error('Fehler beim Laden:', error);
+                }
+            }
+
+            // Stoppe Auto-Clicker
+            function stopAutoClicker() {
+                if (autoClickerInterval) {
+                    clearInterval(autoClickerInterval);
+                    autoClickerInterval = null;
+                }
+            }
+
             function startAutoClicker() {
+                // Erst alten Interval stoppen
+                stopAutoClicker();
+
                 if (gameState.upgrades.autoClicker.active && gameState.upgrades.autoClicker.enabled && !autoClickerInterval) {
                     autoClickerInterval = setInterval(() => {
                         gameState.coins += gameState.upgrades.autoClicker.value;
@@ -689,6 +752,7 @@
                         const containerRect = container.getBoundingClientRect();
                         createSplitters(containerRect.width / 2, containerRect.height / 2);
                     }, 1000);
+                    console.log('Auto-Clicker gestartet');
                 }
             }
 
@@ -722,53 +786,6 @@
                     document.querySelector('.cookie-container').appendChild(splitter);
                     
                     setTimeout(() => splitter.remove(), 800);
-                }
-            }
-
-            // Lade Spielerdaten
-            async function loadUserData() {
-                try {
-                    const telegramId = tg.initDataUnsafe?.user?.id;
-                    if (!telegramId) return;
-
-                    const response = await fetch(`/api/user/${telegramId}`);
-                    const userData = await response.json();
-                    
-                    gameState = {
-                        coins: Number(userData.coins || 0),
-                        multiplier: Number(userData.multiplier || 0.1),
-                        level: {
-                            current: Number(userData.level?.current || 0),
-                            exp: Number(userData.level?.exp || 0),
-                            nextLevel: Number(userData.level?.nextLevel || 100)
-                        },
-                        upgrades: {
-                            multiplier: {
-                                cost: Number(userData.upgrades?.multiplier?.cost || 5),
-                                increment: Number(userData.upgrades?.multiplier?.increment || 0.1),
-                                costIncrease: Number(userData.upgrades?.multiplier?.costIncrease || 1.3)
-                            },
-                            autoClicker: {
-                                active: Boolean(userData.upgrades?.autoClicker?.active || false),
-                                cost: Number(userData.upgrades?.autoClicker?.cost || 100),
-                                value: Number(userData.upgrades?.autoClicker?.value || 0.1),
-                                upgradeCost: Number(userData.upgrades?.autoClicker?.upgradeCost || 200),
-                                costIncrease: Number(userData.upgrades?.autoClicker?.costIncrease || 1.5),
-                                lastUpdate: Number(userData.upgrades?.autoClicker?.lastUpdate || Date.now())
-                            }
-                        }
-                    };
-
-                    if (gameState.upgrades.autoClicker.active) {
-                        document.getElementById('autoClickerBuy').style.display = 'none';
-                        document.getElementById('autoClickerUpgrade').style.display = 'flex';
-                        calculateOfflineProgress();
-                        startAutoClicker();
-                    }
-                    
-                    updateDisplay();
-                } catch (error) {
-                    console.error('Fehler beim Laden:', error);
                 }
             }
 
