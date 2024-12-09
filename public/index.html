@@ -322,6 +322,41 @@
             pointer-events: none;
             animation: splitterAnimation 0.5s ease-out forwards;
         }
+
+        /* Neue Styles für Toast-Nachrichten */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .toast-message {
+            background: rgba(46, 204, 113, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            animation: toastSlide 0.3s ease-out forwards, toastFade 0.3s ease-out 2.7s forwards;
+            text-align: center;
+        }
+
+        .toast-message.error {
+            background: rgba(231, 76, 60, 0.9);
+        }
+
+        @keyframes toastSlide {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes toastFade {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
     </style>
 </head>
 <body>
@@ -384,6 +419,8 @@
     <div class="auto-clicker-status" id="autoClickerStatus">
         <div class="icon">🤖</div>
     </div>
+
+    <div class="toast-container" id="toastContainer"></div>
 
     <script>
         window.addEventListener('load', () => {
@@ -609,6 +646,16 @@
                 createSplitters(x, y);
             });
 
+            function showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast-message ${type}`;
+                toast.textContent = message;
+                document.getElementById('toastContainer').appendChild(toast);
+                
+                // Toast nach Animation entfernen
+                setTimeout(() => toast.remove(), 3000);
+            }
+
             document.querySelector('.upgrade-item').addEventListener('click', () => {
                 if (gameState.coins >= gameState.upgrades.multiplier.cost) {
                     gameState.coins -= gameState.upgrades.multiplier.cost;
@@ -616,17 +663,11 @@
                     gameState.upgrades.multiplier.cost = Math.ceil(Number(gameState.upgrades.multiplier.cost) * gameState.upgrades.multiplier.costIncrease);
                     updateDisplay();
                     tg.HapticFeedback.notificationOccurred('success');
-                    tg.showPopup({
-                        title: '🎉 Upgrade gekauft!',
-                        message: `Neuer Multiplier: ${gameState.multiplier.toFixed(2)} pro Klick\nNächstes Upgrade kostet: ${gameState.upgrades.multiplier.cost} Coins`
-                    });
+                    showToast(`🎉 Multiplier: ${gameState.multiplier.toFixed(2)} | Nächstes: ${gameState.upgrades.multiplier.cost} Coins`);
                     saveUserData();
                 } else {
                     tg.HapticFeedback.notificationOccurred('error');
-                    tg.showPopup({
-                        title: '❌ Nicht genug Coins',
-                        message: `Du brauchst ${gameState.upgrades.multiplier.cost} Coins für dieses Upgrade!`
-                    });
+                    showToast(`❌ Du brauchst ${gameState.upgrades.multiplier.cost} Coins!`, 'error');
                 }
             });
 
@@ -642,10 +683,7 @@
                     const status = document.getElementById('autoClickerStatus');
                     status.style.display = 'flex';
                     status.classList.add('active');
-                    tg.showPopup({
-                        title: '🤖 Auto-Clicker aktiviert!',
-                        message: 'Dein Auto-Clicker ist jetzt aktiv und klickt jede Sekunde!'
-                    });
+                    showToast('🤖 Auto-Clicker aktiviert!');
                     saveUserData();
                 }
             });
@@ -656,16 +694,10 @@
                     gameState.autoClicker.multiplier += 0.1;
                     gameState.autoClicker.upgradeCost = Math.ceil(gameState.autoClicker.upgradeCost * gameState.autoClicker.costIncrease);
                     updateDisplay();
-                    tg.showPopup({
-                        title: '⚡ Auto-Clicker verbessert!',
-                        message: `Neuer Auto-Clicker: ${gameState.autoClicker.multiplier.toFixed(2)} Coins/Sekunde\nNächstes Upgrade: ${gameState.autoClicker.upgradeCost} Coins`
-                    });
+                    showToast(`⚡ Auto-Clicker: ${gameState.autoClicker.multiplier.toFixed(2)}/s | Nächstes: ${gameState.autoClicker.upgradeCost} Coins`);
                     saveUserData();
                 } else {
-                    tg.showPopup({
-                        title: '❌ Nicht genug Coins',
-                        message: `Du brauchst ${gameState.autoClicker.upgradeCost} Coins für dieses Upgrade!`
-                    });
+                    showToast(`❌ Du brauchst ${gameState.autoClicker.upgradeCost} Coins!`, 'error');
                 }
             });
 
