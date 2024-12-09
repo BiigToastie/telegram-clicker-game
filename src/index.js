@@ -5,16 +5,18 @@ const path = require('path');
 const fs = require('fs').promises;
 require('dotenv').config();
 
-const USERS_FILE = path.join(__dirname, '../data/users.json');
+// Render.com erlaubt Schreibzugriff im /tmp Verzeichnis
+const USERS_FILE = process.env.NODE_ENV === 'production' 
+  ? '/tmp/users.json'
+  : path.join(__dirname, '../data/users.json');
 
 // Hilfsfunktionen für die Datenspeicherung
 async function loadUsers() {
     try {
         const data = await fs.readFile(USERS_FILE, 'utf8');
-        // Sicheres Parsen mit Fallback
         const users = JSON.parse(data);
         if (!users || typeof users !== 'object') {
-            console.error('Ungültiges Datenformat, stelle Backup wieder her');
+            console.error('Ungültiges Datenformat');
             return {};
         }
         return users;
@@ -25,36 +27,19 @@ async function loadUsers() {
             return {};
         }
         console.error('Fehler beim Laden der Benutzerdaten:', error);
-        // Versuche Backup zu laden
-        try {
-            const backup = await fs.readFile(USERS_FILE + '.backup', 'utf8');
-            return JSON.parse(backup) || {};
-        } catch (backupError) {
-            console.error('Backup konnte nicht geladen werden:', backupError);
-            return {};
-        }
+        return {};
     }
 }
 
 async function saveUsers(users) {
     try {
-        // Erstelle Backup der alten Daten
-        try {
-            const oldData = await fs.readFile(USERS_FILE, 'utf8');
-            await fs.writeFile(USERS_FILE + '.backup', oldData);
-        } catch (backupError) {
-            console.error('Backup konnte nicht erstellt werden:', backupError);
-        }
-
         // Validiere Daten vor dem Speichern
         if (!users || typeof users !== 'object') {
             throw new Error('Ungültige Daten');
         }
 
-        // Atomares Speichern
-        const tempFile = USERS_FILE + '.temp';
-        await fs.writeFile(tempFile, JSON.stringify(users, null, 2));
-        await fs.rename(tempFile, USERS_FILE);
+        // Direktes Speichern im Production-Mode
+        await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
     } catch (error) {
         console.error('Fehler beim Speichern:', error);
         throw error;
