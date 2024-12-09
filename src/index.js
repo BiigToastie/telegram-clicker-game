@@ -155,36 +155,52 @@ app.post('/api/user/:telegramId/save', async (req, res) => {
         const { coins, multiplier, level, upgrades, name, username } = req.body;
         // Lade aktuelle Daten
         const users = await loadUsers();
-        const currentUser = users[req.params.telegramId] || {};
 
         // Merge neue Daten mit existierenden Daten
         users[req.params.telegramId] = {
-            ...currentUser,
             coins,
             multiplier,
             level,
-            upgrades,
+            upgrades: {
+                multiplier: {
+                    cost: upgrades.multiplier.cost,
+                    increment: upgrades.multiplier.increment,
+                    costIncrease: upgrades.multiplier.costIncrease
+                },
+                autoClicker: {
+                    active: upgrades.autoClicker.active,
+                    cost: upgrades.autoClicker.cost,
+                    value: upgrades.autoClicker.value,
+                    upgradeCost: upgrades.autoClicker.upgradeCost,
+                    costIncrease: upgrades.autoClicker.costIncrease,
+                    lastUpdate: upgrades.autoClicker.lastUpdate
+                }
+            },
             name,
             username,
             lastUpdated: new Date()
         };
 
         // Validiere Daten vor dem Speichern
-        if (typeof coins !== 'number' || typeof multiplier !== 'number') {
+        if (!users[req.params.telegramId] || 
+            typeof users[req.params.telegramId].coins !== 'number' || 
+            typeof users[req.params.telegramId].multiplier !== 'number' ||
+            !users[req.params.telegramId].upgrades ||
+            !users[req.params.telegramId].upgrades.multiplier ||
+            !users[req.params.telegramId].upgrades.autoClicker) {
             throw new Error('Ungültige Datentypen');
         }
 
-        // Sichere Speicherung
-        await fs.writeFile(USERS_FILE + '.temp', JSON.stringify(users, null, 2));
-        await fs.rename(USERS_FILE + '.temp', USERS_FILE);
-        
-        // Erstelle Backup
+        // Sichere Speicherung mit Backup
+        const tempFile = USERS_FILE + '.temp';
+        await fs.writeFile(tempFile, JSON.stringify(users, null, 2));
         await fs.writeFile(USERS_FILE + '.backup', JSON.stringify(users, null, 2));
+        await fs.rename(tempFile, USERS_FILE);
 
         res.json({ success: true });
     } catch (error) {
-        console.error('Speicherfehler:', error);
-        res.status(500).json({ error: 'Speicherfehler' });
+        console.error('Speicherfehler:', error, error.stack);
+        res.status(500).json({ error: 'Speicherfehler', details: error.message });
     }
 });
 
