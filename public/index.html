@@ -468,14 +468,14 @@
             }
 
             function createSplitters(x, y) {
-                const splitterCount = 8;
+                const splitterCount = 12;
                 
                 for (let i = 0; i < splitterCount; i++) {
                     const splitter = document.createElement('div');
                     splitter.className = 'cookie-splitter';
                     
                     const angle = (Math.PI * 2 * i) / splitterCount + (Math.random() * 0.5 - 0.25);
-                    const distance = 30 + Math.random() * 30;
+                    const distance = 100 + Math.random() * 150;
                     const tx = Math.cos(angle) * distance;
                     const ty = Math.sin(angle) * distance;
                     const rotation = Math.random() * 720 - 360;
@@ -484,12 +484,14 @@
                     splitter.style.setProperty('--ty', `${ty}px`);
                     splitter.style.setProperty('--r', `${rotation}deg`);
                     
-                    splitter.style.left = `${x}px`;
-                    splitter.style.top = `${y}px`;
+                    const offsetX = clickButton.offsetWidth * 0.4;
+                    const offsetY = clickButton.offsetHeight * 0.4;
+                    splitter.style.left = `${offsetX}px`;
+                    splitter.style.top = `${offsetY}px`;
                     
                     document.querySelector('.cookie-container').appendChild(splitter);
                     
-                    setTimeout(() => splitter.remove(), 500);
+                    setTimeout(() => splitter.remove(), 800);
                 }
             }
 
@@ -648,7 +650,7 @@
                     clickButton.style.transform = 'scale(1)';
                 }, 100);
                 
-                // Splitter-Animation immer in der Mitte des Cookies
+                // Splitter-Animation mit Offset
                 createSplitters();
             });
 
