@@ -678,7 +678,7 @@
             }
 
             function startAutoClicker() {
-                if (gameState.upgrades.autoClicker.active && !autoClickerInterval) {
+                if (gameState.upgrades.autoClicker.active && gameState.upgrades.autoClicker.enabled && !autoClickerInterval) {
                     autoClickerInterval = setInterval(() => {
                         gameState.coins += gameState.upgrades.autoClicker.value;
                         addExp(0.1);
@@ -856,20 +856,6 @@
                 }
             });
 
-            document.getElementById('autoClickerBuy').addEventListener('click', () => {
-                if (!gameState.upgrades.autoClicker.active && gameState.coins >= gameState.upgrades.autoClicker.cost) {
-                    gameState.coins -= gameState.upgrades.autoClicker.cost;
-                    gameState.upgrades.autoClicker.active = true;
-                    startAutoClicker();
-                    updateDisplay();
-                    document.getElementById('autoClickerBuy').style.display = 'none';
-                    document.getElementById('autoClickerUpgrade').style.display = 'flex';
-                    showToast('🤖 Auto-Clicker aktiviert!');
-                } else {
-                    showToast(`❌ Du brauchst ${gameState.upgrades.autoClicker.cost} Coins!`, 'error');
-                }
-            });
-
             document.getElementById('autoClickerUpgrade').addEventListener('click', () => {
                 if (gameState.coins >= gameState.upgrades.autoClicker.upgradeCost) {
                     gameState.coins -= gameState.upgrades.autoClicker.upgradeCost;
@@ -878,8 +864,25 @@
                     addExp(100);
                     updateDisplay();
                     showToast(`⚡ Auto-Clicker: ${gameState.upgrades.autoClicker.value.toFixed(2)}/s`);
+                    saveUserData();
                 } else {
                     showToast(`❌ Du brauchst ${gameState.upgrades.autoClicker.upgradeCost} Coins!`, 'error');
+                }
+            });
+
+            document.getElementById('autoClickerBuy').addEventListener('click', () => {
+                if (!gameState.upgrades.autoClicker.active && gameState.coins >= gameState.upgrades.autoClicker.cost) {
+                    gameState.coins -= gameState.upgrades.autoClicker.cost;
+                    gameState.upgrades.autoClicker.active = true;
+                    gameState.upgrades.autoClicker.enabled = true;
+                    startAutoClicker();
+                    updateDisplay();
+                    document.getElementById('autoClickerBuy').style.display = 'none';
+                    document.getElementById('autoClickerUpgrade').style.display = 'flex';
+                    showToast('🤖 Auto-Clicker aktiviert!');
+                    saveUserData();
+                } else {
+                    showToast(`❌ Du brauchst ${gameState.upgrades.autoClicker.cost} Coins!`, 'error');
                 }
             });
 
