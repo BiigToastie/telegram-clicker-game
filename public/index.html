@@ -276,8 +276,9 @@
             cursor: pointer;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
-            opacity: 0.3;
+            opacity: 0.5;
             z-index: 100;
+            display: flex !important;
         }
 
         .auto-clicker-status.active {
@@ -287,14 +288,10 @@
             opacity: 1;
         }
 
-        .auto-clicker-status:not(.locked):hover {
-            opacity: 0.8;
-            transform: translateY(-50%) scale(1.1);
-        }
-
         .auto-clicker-status.locked {
             cursor: not-allowed;
             opacity: 0.3;
+            pointer-events: none;
         }
 
         .auto-clicker-status .icon {
@@ -537,7 +534,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🎮 G4ngKlicker</h1>
+        <h1>BudsKlicker</h1>
         <p>Klicke und sammle Coins, kaufe Upgrades im Shop!</p>
     </div>
 
@@ -1045,6 +1042,9 @@
                 if (gameState.upgrades.autoClicker.enabled) {
                     status.classList.add('active');
                 }
+            } else {
+                const status = document.getElementById('autoClickerStatus');
+                status.classList.add('locked');
             }
         });
     </script>
