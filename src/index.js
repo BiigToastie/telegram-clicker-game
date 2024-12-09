@@ -60,6 +60,11 @@ app.get('/api/user/:telegramId', async (req, res) => {
         const user = users[req.params.telegramId] || {
             coins: 0,
             multiplier: 0.1,
+            level: {
+                current: 0,
+                exp: 0,
+                nextLevel: 100
+            },
             upgrades: {
                 multiplier: {
                     cost: 5,
