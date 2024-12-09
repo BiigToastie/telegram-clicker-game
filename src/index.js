@@ -97,11 +97,22 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.get('/api/user/:telegramId', async (req, res) => {
     try {
         const users = await loadUsers();
-        // Existierende Daten NIEMALS überschreiben
+        // Versuche zuerst die Hauptdatei zu laden
         let user = users[req.params.telegramId];
-        
+
+        // Wenn keine Daten gefunden, versuche Backup
         if (!user) {
-            // Nur für neue Spieler Standardwerte setzen
+            try {
+                const backupData = await fs.readFile(USERS_FILE + '.backup', 'utf8');
+                const backupUsers = JSON.parse(backupData);
+                user = backupUsers[req.params.telegramId];
+            } catch (backupError) {
+                console.error('Backup konnte nicht geladen werden:', backupError);
+            }
+        }
+
+        // Wenn immer noch keine Daten, erstelle neue
+        if (!user) {
             user = {
                 coins: 0,
                 multiplier: 0.1,
@@ -131,6 +142,7 @@ app.get('/api/user/:telegramId', async (req, res) => {
             users[req.params.telegramId] = user;
             await saveUsers(users);
         }
+
         res.json(user);
     } catch (error) {
         console.error('Fehler beim Laden/Speichern:', error);
@@ -141,8 +153,13 @@ app.get('/api/user/:telegramId', async (req, res) => {
 app.post('/api/user/:telegramId/save', async (req, res) => {
     try {
         const { coins, multiplier, level, upgrades, name, username } = req.body;
+        // Lade aktuelle Daten
         const users = await loadUsers();
+        const currentUser = users[req.params.telegramId] || {};
+
+        // Merge neue Daten mit existierenden Daten
         users[req.params.telegramId] = {
+            ...currentUser,
             coins,
             multiplier,
             level,
@@ -151,9 +168,22 @@ app.post('/api/user/:telegramId/save', async (req, res) => {
             username,
             lastUpdated: new Date()
         };
-        await saveUsers(users);
+
+        // Validiere Daten vor dem Speichern
+        if (typeof coins !== 'number' || typeof multiplier !== 'number') {
+            throw new Error('Ungültige Datentypen');
+        }
+
+        // Sichere Speicherung
+        await fs.writeFile(USERS_FILE + '.temp', JSON.stringify(users, null, 2));
+        await fs.rename(USERS_FILE + '.temp', USERS_FILE);
+        
+        // Erstelle Backup
+        await fs.writeFile(USERS_FILE + '.backup', JSON.stringify(users, null, 2));
+
         res.json({ success: true });
     } catch (error) {
+        console.error('Speicherfehler:', error);
         res.status(500).json({ error: 'Speicherfehler' });
     }
 });
