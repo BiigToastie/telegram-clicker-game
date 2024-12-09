@@ -451,20 +451,41 @@
                         cost: 100,
                         value: 0.1,
                         upgradeCost: 200,
-                        costIncrease: 1.5
+                        costIncrease: 1.5,
+                        lastUpdate: Date.now()
                     }
                 }
             };
 
             let autoClickerInterval;
 
+            function calculateOfflineProgress() {
+                if (gameState.upgrades.autoClicker.active && gameState.upgrades.autoClicker.lastUpdate) {
+                    const now = Date.now();
+                    const timeDiff = now - gameState.upgrades.autoClicker.lastUpdate;
+                    const seconds = Math.floor(timeDiff / 1000);
+                    
+                    if (seconds > 0) {
+                        const offlineCoins = seconds * gameState.upgrades.autoClicker.value;
+                        gameState.coins += offlineCoins;
+                        showToast(`🤖 Während du weg warst:\n+${offlineCoins.toFixed(2)} Coins in ${seconds} Sekunden!`);
+                    }
+                    
+                    gameState.upgrades.autoClicker.lastUpdate = now;
+                    saveUserData();
+                }
+            }
+
             function startAutoClicker() {
                 if (gameState.upgrades.autoClicker.active && !autoClickerInterval) {
                     autoClickerInterval = setInterval(() => {
                         gameState.coins += gameState.upgrades.autoClicker.value;
                         updateDisplay();
+                        gameState.upgrades.autoClicker.lastUpdate = Date.now();
                         saveUserData();
-                        createSplitters();
+                        const container = document.querySelector('.cookie-container');
+                        const containerRect = container.getBoundingClientRect();
+                        createSplitters(containerRect.width / 2, containerRect.height / 2);
                     }, 1000);
                 }
             }
@@ -525,7 +546,8 @@
                                 cost: Number(userData.upgrades?.autoClicker?.cost || 100),
                                 value: Number(userData.upgrades?.autoClicker?.value || 0.1),
                                 upgradeCost: Number(userData.upgrades?.autoClicker?.upgradeCost || 200),
-                                costIncrease: Number(userData.upgrades?.autoClicker?.costIncrease || 1.5)
+                                costIncrease: Number(userData.upgrades?.autoClicker?.costIncrease || 1.5),
+                                lastUpdate: Number(userData.upgrades?.autoClicker?.lastUpdate || Date.now())
                             }
                         }
                     };
@@ -533,6 +555,7 @@
                     if (gameState.upgrades.autoClicker.active) {
                         document.getElementById('autoClickerBuy').style.display = 'none';
                         document.getElementById('autoClickerUpgrade').style.display = 'flex';
+                        calculateOfflineProgress();
                         startAutoClicker();
                     }
                     
