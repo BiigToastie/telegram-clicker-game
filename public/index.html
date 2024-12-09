@@ -67,6 +67,7 @@
             gap: 15px;
             width: 100%;
             max-width: 400px;
+            align-items: center;
         }
 
         .button {
@@ -175,7 +176,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 20px 0;
+            margin-bottom: 20px;
+            width: 100%;
         }
 
         .click-value {
@@ -207,7 +209,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🎮 Clicker Game</h1>
+        <h1>🎮 G4ngKlicker</h1>
         <p>Klicke und sammle Coins, kaufe Upgrades im Shop!</p>
     </div>
 
@@ -223,10 +225,10 @@
     </div>
 
     <div class="button-container">
-        <button class="button" id="clickButton">
-            <span>🎮 Klicken</span>
-            <span>+<span id="clickValue">1.0</span> Coins</span>
-        </button>
+        <div class="cookie-container">
+            <button class="cookie-button" id="clickButton"></button>
+            <div class="click-value">+<span id="clickValue">1.0</span> Coins pro Klick</div>
+        </div>
         <button class="button shop-button" id="shopButton">
             <span>🛍 Shop öffnen</span>
             <span>Upgrades verfügbar!</span>
@@ -246,11 +248,6 @@
 
     <div class="info-text">
         Tipp: Je mehr Multiplier du kaufst, desto schneller sammelst du Coins!
-    </div>
-
-    <div class="cookie-container">
-        <button class="cookie-button" id="clickButton"></button>
-        <div class="click-value">+<span id="clickValue">1.0</span> Coins pro Klick</div>
     </div>
 
     <script>
