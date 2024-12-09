@@ -200,6 +200,7 @@
             align-items: center;
             margin-bottom: 10px;
             width: 100%;
+            overflow: visible;
         }
 
         .click-value {
@@ -291,6 +292,28 @@
             50% { transform: scale(0.95); }
             100% { transform: scale(1); }
         }
+
+        /* Neue Styles für Cookie-Splitter */
+        @keyframes splitterAnimation {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) rotate(var(--r));
+                opacity: 0;
+            }
+        }
+
+        .cookie-splitter {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle at center, #b17a45 0%, #8b5e2e 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: splitterAnimation 0.5s ease-out forwards;
+        }
     </style>
 </head>
 <body>
@@ -320,19 +343,15 @@
                 </span>
             </div>
         </div>
-        <button class="button shop-button" id="shopButton">
-            <span>🛍 Shop öffnen</span>
-            <span>Upgrades verfügbar!</span>
-        </button>
     </div>
 
-    <div class="upgrade-container" id="upgradeContainer">
+    <div class="upgrade-container" style="display: block;">
         <div class="upgrade-item">
             <div class="upgrade-info">
                 <div class="upgrade-title">💰 Coin Multiplier</div>
                 <div class="upgrade-description">Erhöht den Coin-Gewinn pro Klick um 0.1</div>
             </div>
-            <div class="upgrade-cost" id="multiplierCost">1 🪙</div>
+            <div class="upgrade-cost" id="multiplierCost">5 🪙</div>
         </div>
         <div class="upgrade-item" id="autoClickerItem">
             <div class="upgrade-info">
@@ -394,19 +413,52 @@
                 }, 100);
             }
 
+            function createSplitters(x, y) {
+                const splitterCount = 6;
+                for (let i = 0; i < splitterCount; i++) {
+                    const splitter = document.createElement('div');
+                    splitter.className = 'cookie-splitter';
+                    
+                    // Zufällige Bewegung für jeden Splitter
+                    const angle = (Math.PI * 2 * i) / splitterCount + (Math.random() * 0.5 - 0.25);
+                    const distance = 20 + Math.random() * 20;
+                    const tx = Math.cos(angle) * distance;
+                    const ty = Math.sin(angle) * distance;
+                    const rotation = Math.random() * 360;
+
+                    splitter.style.setProperty('--tx', `${tx}px`);
+                    splitter.style.setProperty('--ty', `${ty}px`);
+                    splitter.style.setProperty('--r', `${rotation}deg`);
+                    
+                    // Position setzen
+                    splitter.style.left = `${x}px`;
+                    splitter.style.top = `${y}px`;
+                    
+                    document.querySelector('.cookie-container').appendChild(splitter);
+                    
+                    // Splitter nach Animation entfernen
+                    setTimeout(() => splitter.remove(), 500);
+                }
+            }
+
             function startAutoClicker() {
-                if (gameState.autoClicker.active && gameState.autoClicker.enabled && !autoClickerInterval) {
+                if (gameState.autoClicker.active && !autoClickerInterval) {
                     autoClickerInterval = setInterval(() => {
                         gameState.coins += gameState.autoClicker.multiplier;
                         updateDisplay();
                         saveUserData();
+                        
                         // Cookie-Animation
                         clickButton.style.transform = 'scale(0.95)';
                         setTimeout(() => {
                             clickButton.style.transform = 'scale(1)';
                         }, 100);
+                        
+                        // Zentrierte Splitter-Animation für Auto-Clicker
+                        const centerX = clickButton.offsetWidth / 2;
+                        const centerY = clickButton.offsetHeight / 2;
+                        createSplitters(centerX, centerY);
                     }, 1000);
-                    document.getElementById('autoClickerStatus').classList.add('active');
                 }
             }
 
@@ -450,7 +502,6 @@
             const multiplierDisplay = document.getElementById('multiplier');
             const clickValueDisplay = document.getElementById('clickValue');
             const clickButton = document.getElementById('clickButton');
-            const shopButton = document.getElementById('shopButton');
             const upgradeContainer = document.getElementById('upgradeContainer');
             const multiplierCost = document.getElementById('multiplierCost');
 
@@ -521,23 +572,23 @@
             // Lade Daten beim Start
             loadUserData();
 
-            clickButton.addEventListener('click', () => {
+            clickButton.addEventListener('click', (e) => {
                 gameState.coins += gameState.multiplier;
                 updateDisplay();
                 tg.HapticFeedback.impactOccurred('light');
-                saveUserData(); // Speichern nach Klick
+                saveUserData();
                 
                 // Animation für den Click
                 clickButton.style.transform = 'scale(0.95)';
                 setTimeout(() => {
                     clickButton.style.transform = 'scale(1)';
                 }, 100);
-            });
-
-            shopButton.addEventListener('click', () => {
-                const isShopOpen = upgradeContainer.style.display === 'block';
-                upgradeContainer.style.display = isShopOpen ? 'none' : 'block';
-                shopButton.textContent = isShopOpen ? '🛍 Shop öffnen' : '🔙 Zurück zum Spiel';
+                
+                // Splitter-Animation am Klickpunkt
+                const rect = clickButton.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                createSplitters(x, y);
             });
 
             document.querySelector('.upgrade-item').addEventListener('click', () => {
