@@ -404,7 +404,7 @@
         <div class="upgrade-item">
             <div class="upgrade-info">
                 <div class="upgrade-title">💰 Coin Multiplier</div>
-                <div class="upgrade-description">Erhöht den Coin-Gewinn pro Klick um 0.1 (Aktuell: ${gameState.multiplier.toFixed(2)})</div>
+                <div class="upgrade-description">Erhöht den Coin-Gewinn pro Klick um 0.5 (Aktuell: ${gameState.multiplier.toFixed(2)})</div>
             </div>
             <div class="upgrade-cost" id="multiplierCost">5 🪙</div>
         </div>
@@ -721,7 +721,7 @@
                 clickValueDisplay.textContent = gameState.multiplier.toFixed(2);
                 multiplierCost.textContent = `${Math.ceil(gameState.upgrades.multiplier.cost)} 🪙`;
                 document.querySelector('.upgrade-item .upgrade-description').textContent = 
-                    `Erhöht den Coin-Gewinn pro Klick um 0.1 (Aktuell: ${gameState.multiplier.toFixed(2)})`;
+                    `Erhöht den Coin-Gewinn pro Klick um 0.5 (Aktuell: ${gameState.multiplier.toFixed(2)})`;
                 if (gameState.autoClicker.active) {
                     document.getElementById('autoClickValue').style.display = 'inline-block';
                     document.getElementById('autoClickMultiplier').textContent = 
