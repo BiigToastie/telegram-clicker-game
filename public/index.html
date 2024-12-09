@@ -272,20 +272,20 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: #2c2c2c;
+            background: #e74c3c;
             display: flex !important;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
-            opacity: 0.5;
+            opacity: 0.8;
             z-index: 100;
             visibility: visible !important;
         }
 
         .auto-clicker-status.active {
-            background: #2ecc71;
+            background: #2ecc71 !important;
             box-shadow: 0 0 10px #2ecc71;
             transform: translateY(-50%) scale(1.1);
             opacity: 1;
@@ -295,6 +295,7 @@
             cursor: not-allowed;
             opacity: 0.3;
             pointer-events: none;
+            background: #2c2c2c;
         }
 
         .auto-clicker-status .icon {
@@ -1064,6 +1065,7 @@
                         showToast('🤖 Auto-Clicker deaktiviert!');
                     }
                     saveUserData();
+                    console.log('Auto-Clicker Status:', gameState.upgrades.autoClicker.enabled ? 'aktiviert' : 'deaktiviert');
                 } else {
                     showToast('❌ Kaufe zuerst den Auto-Clicker!', 'error');
                 }
