@@ -484,8 +484,12 @@
                     splitter.style.setProperty('--ty', `${ty}px`);
                     splitter.style.setProperty('--r', `${rotation}deg`);
                     
-                    const offsetX = clickButton.offsetWidth * 0.5;
-                    const offsetY = clickButton.offsetHeight * 0.5;
+                    // Position anhand der Click-Value-Anzeige berechnen
+                    const clickValue = document.querySelector('.click-value');
+                    const cookieRect = clickButton.getBoundingClientRect();
+                    const valueRect = clickValue.getBoundingClientRect();
+                    const offsetX = cookieRect.width / 2;
+                    const offsetY = (valueRect.top - cookieRect.top) / 2;
                     splitter.style.left = `${offsetX}px`;
                     splitter.style.top = `${offsetY}px`;
                     
