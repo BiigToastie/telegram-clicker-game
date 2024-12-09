@@ -60,11 +60,6 @@ app.get('/api/user/:telegramId', async (req, res) => {
         const user = users[req.params.telegramId] || {
             coins: 0,
             multiplier: 0.1,
-            level: {
-                current: 0,
-                exp: 0,
-                nextLevel: 100
-            },
             upgrades: {
                 multiplier: {
                     cost: 5,
@@ -104,6 +99,32 @@ app.post('/api/user/:telegramId/save', async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: 'Speicherfehler' });
+    }
+});
+
+// API-Route für die Bestenliste
+app.get('/api/leaderboard', async (req, res) => {
+    try {
+        const users = await loadUsers();
+        const leaderboard = Object.entries(users).map(([id, user]) => ({
+            id,
+            name: `@${user.username || 'Anonymous'}`,
+            coins: user.coins,
+            level: user.level?.current || 0
+        }))
+        .sort((a, b) => {
+            // Primär nach Level sortieren
+            if (b.level !== a.level) {
+                return b.level - a.level;
+            }
+            // Sekundär nach Coins sortieren
+            return b.coins - a.coins;
+        })
+        .slice(0, 10); // Top 10 Spieler
+
+        res.json(leaderboard);
+    } catch (error) {
+        res.status(500).json({ error: 'Leaderboard Fehler' });
     }
 });
 

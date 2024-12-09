@@ -17,6 +17,27 @@
         Tipp: Je mehr Multiplier du kaufst, desto schneller sammelst du Coins!
     </div>
 
+    <div class="stats">
+        <div class="stat-card">
+            <div>🪙 Coins</div>
+            <div class="stat-value" id="coins">0</div>
+        </div>
+        <div class="stat-card">
+            <div>💰 Pro Klick</div>
+            <div class="stat-value" id="multiplier">1.0</div>
+        </div>
+    </div>
+
+    <div class="leaderboard-container">
+        <div class="leaderboard-header">
+            <h2>🏆 Bestenliste</h2>
+            <span class="your-rank">Dein Rang: <span id="yourRank">-</span></span>
+        </div>
+        <div class="leaderboard-list" id="leaderboardList">
+            <!-- Wird dynamisch gefüllt -->
+        </div>
+    </div>
+
     <!-- ... (all remaining HTML content remains unchanged) ... -->
 
     <script>
@@ -45,6 +66,46 @@
                     console.error('Fehler beim Speichern:', error);
                 }
             }
+
+            async function updateLeaderboard() {
+                try {
+                    const response = await fetch('/api/leaderboard');
+                    const leaderboard = await response.json();
+                    const leaderboardList = document.getElementById('leaderboardList');
+                    leaderboardList.innerHTML = '';
+
+                    const currentUser = tg.initDataUnsafe?.user?.id;
+                    let yourRank = '-';
+
+                    leaderboard.forEach((player, index) => {
+                        const item = document.createElement('div');
+                        item.className = `leaderboard-item${player.id === currentUser ? ' leaderboard-you' : ''}`;
+                        
+                        const rank = index + 1;
+                        if (player.id === currentUser) yourRank = rank;
+
+                        item.innerHTML = `
+                            <div class="leaderboard-rank${rank <= 3 ? ` rank-${rank}` : ''}">${rank}</div>
+                            <div class="leaderboard-name">${player.name}</div>
+                            <div class="leaderboard-coins">${Number(player.coins).toFixed(2)} 🪙</div>
+                        `;
+
+                        item.addEventListener('click', () => {
+                            window.open(`https://t.me/${player.username}`);
+                        });
+
+                        leaderboardList.appendChild(item);
+                    });
+
+                    document.getElementById('yourRank').textContent = yourRank;
+                } catch (error) {
+                    console.error('Fehler beim Laden der Bestenliste:', error);
+                }
+            }
+
+            // Bestenliste alle 30 Sekunden aktualisieren
+            setInterval(updateLeaderboard, 30000);
+            updateLeaderboard();
 
             // ... (all remaining JavaScript code remains unchanged) ...
         });
