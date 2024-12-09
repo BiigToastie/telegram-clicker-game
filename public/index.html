@@ -33,6 +33,32 @@
             setInterval(updateLeaderboard, 5000);
             updateLeaderboard();
 
+            // Speichere Spielerdaten
+            async function saveUserData() {
+                try {
+                    const telegramId = tg.initDataUnsafe?.user?.id;
+                    if (!telegramId) return;
+
+                    const telegramUsername = tg.initDataUnsafe?.user?.username;
+
+                    await fetch(`/api/user/${telegramId}/save`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            coins: gameState.coins,
+                            multiplier: gameState.multiplier,
+                            level: gameState.level,
+                            upgrades: gameState.upgrades,
+                            telegramUsername: telegramUsername
+                        })
+                    });
+                } catch (error) {
+                    console.error('Fehler beim Speichern:', error);
+                }
+            }
+
             // ... (all remaining JavaScript code remains unchanged) ...
         });
     </script>

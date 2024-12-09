@@ -113,7 +113,7 @@ app.get('/api/leaderboard', async (req, res) => {
         const users = await loadUsers();
         const leaderboard = Object.entries(users).map(([id, user]) => ({
             id,
-            name: `@${user.username || 'Anonymous'}`,
+            name: user.telegramUsername ? `@${user.telegramUsername}` : 'Anonymous',
             coins: user.coins,
             level: user.level?.current || 0,
             exp: user.level?.exp || 0,
