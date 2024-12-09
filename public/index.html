@@ -150,6 +150,15 @@
             transition: transform 0.1s;
             margin: 20px auto;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            touch-action: manipulation;
         }
 
         .cookie-button::before {
@@ -170,6 +179,7 @@
 
         .cookie-button:active {
             transform: scale(0.95);
+            background: radial-gradient(circle at 30% 30%, #b17a45 0%, #8b5e2e 100%);
         }
 
         .cookie-container {
@@ -205,6 +215,25 @@
             width: 100%;
             max-width: 300px;
         }
+
+        .cookie-button:focus {
+            outline: none;
+            background: radial-gradient(circle at 30% 30%, #b17a45 0%, #8b5e2e 100%);
+        }
+
+        /* Verhindert Highlight auf mobilen Geräten */
+        @media (hover: none) {
+            .cookie-button {
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+            }
+            
+            .cookie-button:focus,
+            .cookie-button:active {
+                background: radial-gradient(circle at 30% 30%, #b17a45 0%, #8b5e2e 100%);
+                outline: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -239,11 +268,24 @@
         <div class="upgrade-item">
             <div class="upgrade-info">
                 <div class="upgrade-title">💰 Coin Multiplier</div>
-                <div class="upgrade-description">Erhöht den Coin-Gewinn pro Klick um 0.5</div>
+                <div class="upgrade-description">Erhöht den Coin-Gewinn pro Klick um 0.1</div>
             </div>
-            <div class="upgrade-cost" id="multiplierCost">10 🪙</div>
+            <div class="upgrade-cost" id="multiplierCost">1 🪙</div>
         </div>
-        <!-- Weitere Upgrade-Items hier -->
+        <div class="upgrade-item" id="autoClickerItem">
+            <div class="upgrade-info">
+                <div class="upgrade-title">🤖 Auto-Clicker</div>
+                <div class="upgrade-description" id="autoClickerDesc">Klickt automatisch jede Sekunde! (0.1 Coins/Klick)</div>
+            </div>
+            <div class="upgrade-cost" id="autoClickerCost">100 🪙</div>
+        </div>
+        <div class="upgrade-item" id="autoClickerUpgrade" style="display: none;">
+            <div class="upgrade-info">
+                <div class="upgrade-title">⚡ Auto-Clicker Upgrade</div>
+                <div class="upgrade-description">Erhöht den Auto-Clicker um 0.1 Coins/Klick</div>
+            </div>
+            <div class="upgrade-cost" id="autoClickerUpgradeCost">200 🪙</div>
+        </div>
     </div>
 
     <div class="info-text">
@@ -258,14 +300,40 @@
             
             let gameState = {
                 coins: 0,
-                multiplier: 1,
+                multiplier: 0.1,
+                autoClicker: {
+                    active: false,
+                    multiplier: 0.1,
+                    cost: 100,
+                    upgradeCost: 200,
+                    costIncrease: 2.0  // Exponentieller Anstieg
+                },
                 upgrades: {
                     multiplier: {
-                        cost: 10,
-                        increment: 0.5
+                        cost: 1,
+                        increment: 0.1,
+                        costIncrease: 1.2
                     }
                 }
             };
+
+            // Auto-Clicker Timer
+            let autoClickerInterval;
+
+            function startAutoClicker() {
+                if (gameState.autoClicker.active && !autoClickerInterval) {
+                    autoClickerInterval = setInterval(() => {
+                        gameState.coins += gameState.autoClicker.multiplier;
+                        updateDisplay();
+                        saveUserData();
+                    }, 1000);
+                }
+            }
+
+            // Starte Auto-Clicker beim Laden
+            if (gameState.autoClicker.active) {
+                startAutoClicker();
+            }
 
             const coinsDisplay = document.getElementById('coins');
             const multiplierDisplay = document.getElementById('multiplier');
@@ -342,12 +410,12 @@
                 if (gameState.coins >= gameState.upgrades.multiplier.cost) {
                     gameState.coins -= gameState.upgrades.multiplier.cost;
                     gameState.multiplier += gameState.upgrades.multiplier.increment;
-                    gameState.upgrades.multiplier.cost = Math.ceil(gameState.upgrades.multiplier.cost * 1.5);
+                    gameState.upgrades.multiplier.cost = Math.ceil(gameState.upgrades.multiplier.cost * gameState.upgrades.multiplier.costIncrease);
                     updateDisplay();
                     tg.HapticFeedback.notificationOccurred('success');
                     tg.showPopup({
                         title: '🎉 Upgrade gekauft!',
-                        message: `Neuer Multiplier: ${gameState.multiplier.toFixed(1)}\nNächstes Upgrade kostet: ${gameState.upgrades.multiplier.cost} Coins`
+                        message: `Neuer Multiplier: ${gameState.multiplier.toFixed(2)} pro Klick\nNächstes Upgrade kostet: ${gameState.upgrades.multiplier.cost} Coins`
                     });
                     saveUserData(); // Speichern nach Upgrade
                 } else {
@@ -359,11 +427,52 @@
                 }
             });
 
+            document.getElementById('autoClickerItem').addEventListener('click', () => {
+                if (!gameState.autoClicker.active && gameState.coins >= gameState.autoClicker.cost) {
+                    gameState.coins -= gameState.autoClicker.cost;
+                    gameState.autoClicker.active = true;
+                    startAutoClicker();
+                    updateDisplay();
+                    document.getElementById('autoClickerItem').style.display = 'none';
+                    document.getElementById('autoClickerUpgrade').style.display = 'flex';
+                    tg.showPopup({
+                        title: '🤖 Auto-Clicker aktiviert!',
+                        message: 'Dein Auto-Clicker ist jetzt aktiv und klickt jede Sekunde!'
+                    });
+                    saveUserData();
+                }
+            });
+
+            document.getElementById('autoClickerUpgrade').addEventListener('click', () => {
+                if (gameState.coins >= gameState.autoClicker.upgradeCost) {
+                    gameState.coins -= gameState.autoClicker.upgradeCost;
+                    gameState.autoClicker.multiplier += 0.1;
+                    gameState.autoClicker.upgradeCost = Math.ceil(gameState.autoClicker.upgradeCost * gameState.autoClicker.costIncrease);
+                    updateDisplay();
+                    tg.showPopup({
+                        title: '⚡ Auto-Clicker verbessert!',
+                        message: `Neuer Auto-Clicker: ${gameState.autoClicker.multiplier.toFixed(2)} Coins/Sekunde\nNächstes Upgrade: ${gameState.autoClicker.upgradeCost} Coins`
+                    });
+                    saveUserData();
+                } else {
+                    tg.showPopup({
+                        title: '❌ Nicht genug Coins',
+                        message: `Du brauchst ${gameState.autoClicker.upgradeCost} Coins für dieses Upgrade!`
+                    });
+                }
+            });
+
             function updateDisplay() {
-                coinsDisplay.textContent = gameState.coins.toFixed(1);
-                multiplierDisplay.textContent = gameState.multiplier.toFixed(1);
-                clickValueDisplay.textContent = gameState.multiplier.toFixed(1);
+                coinsDisplay.textContent = gameState.coins.toFixed(2);
+                multiplierDisplay.textContent = gameState.multiplier.toFixed(2);
+                clickValueDisplay.textContent = gameState.multiplier.toFixed(2);
                 multiplierCost.textContent = `${gameState.upgrades.multiplier.cost} 🪙`;
+                if (gameState.autoClicker.active) {
+                    document.getElementById('autoClickerDesc').textContent = 
+                        `Klickt automatisch jede Sekunde! (${gameState.autoClicker.multiplier.toFixed(2)} Coins/Klick)`;
+                    document.getElementById('autoClickerUpgradeCost').textContent = 
+                        `${gameState.autoClicker.upgradeCost} 🪙`;
+                }
             }
 
             // Initiales Update
