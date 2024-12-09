@@ -263,8 +263,9 @@
         /* Auto-Clicker Status Button */
         .auto-clicker-status {
             position: absolute;
-            left: -60px;
-            top: calc(50% - 20px);
+            left: -50px;
+            top: 50%;
+            transform: translateY(-50%);
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -276,15 +277,22 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
             display: none;
+            z-index: 100;
         }
 
         .auto-clicker-status.active {
             background: #2ecc71;
             box-shadow: 0 0 10px #2ecc71;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .auto-clicker-status:hover {
+            transform: translateY(-50%) scale(1.1);
         }
 
         .auto-clicker-status .icon {
             font-size: 20px;
+            opacity: 0.8;
         }
 
         @keyframes autoClick {
