@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: telegram.org *.telegram.org">
+    <title>Clicker Game</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: var(--tg-theme-bg-color, #1e1e1e);
+            color: var(--tg-theme-text-color, white);
+        }
+        .stats {
+            font-size: 1.2em;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .button {
+            background-color: var(--tg-theme-button-color, #2ea6ff);
+            border: none;
+            color: var(--tg-theme-button-text-color, white);
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            margin: 10px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .button:active {
+            transform: scale(0.95);
+        }
+        .shop-button {
+            background-color: var(--tg-theme-secondary-bg-color, #ff9f1c);
+        }
+    </style>
+</head>
+<body>
+    <div class="stats">
+        <div>🪙 Coins: <span id="coins">0</span></div>
+        <div>💰 Pro Klick: <span id="multiplier">1</span></div>
+    </div>
+    <button class="button" id="clickButton">🎮 Klicken</button>
+    <button class="button shop-button" id="shopButton">🛍 Shop</button>
+
+    <script>
+        window.addEventListener('load', () => {
+            const tg = window.Telegram.WebApp;
+            tg.expand();
+            tg.ready();
+            
+            let gameState = {
+                coins: 0,
+                multiplier: 1
+            };
+
+            const coinsDisplay = document.getElementById('coins');
+            const multiplierDisplay = document.getElementById('multiplier');
+            const clickButton = document.getElementById('clickButton');
+            const shopButton = document.getElementById('shopButton');
+
+            clickButton.addEventListener('click', () => {
+                gameState.coins += gameState.multiplier;
+                updateDisplay();
+                tg.HapticFeedback.impactOccurred('light');
+            });
+
+            shopButton.addEventListener('click', () => {
+                if (gameState.coins >= 10) {
+                    gameState.coins -= 10;
+                    gameState.multiplier += 0.5;
+                    updateDisplay();
+                    tg.HapticFeedback.notificationOccurred('success');
+                    tg.showPopup({
+                        title: '🎉 Upgrade gekauft!',
+                        message: `Neuer Multiplier: ${gameState.multiplier.toFixed(1)}`
+                    });
+                } else {
+                    tg.HapticFeedback.notificationOccurred('error');
+                    tg.showPopup({
+                        title: '❌ Nicht genug Coins',
+                        message: 'Du brauchst mindestens 10 Coins!'
+                    });
+                }
+            });
+
+            function updateDisplay() {
+                coinsDisplay.textContent = gameState.coins.toFixed(1);
+                multiplierDisplay.textContent = gameState.multiplier.toFixed(1);
+            }
+        });
+    </script>
+</body>
+</html>
