@@ -195,7 +195,7 @@
 
         .cookie-container {
             position: relative;
-            padding: 0 60px;
+            padding: 0;
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -265,8 +265,8 @@
 
         /* Auto-Clicker Status Button */
         .auto-clicker-status {
-            position: absolute;
-            left: 10px;
+            position: fixed;
+            left: 20px;
             top: 50%;
             transform: translateY(-50%);
             width: 40px;
@@ -841,8 +841,39 @@
                 }
             }
 
+            // Update initial status
+            if (gameState.upgrades.autoClicker.active) {
+                const status = document.getElementById('autoClickerStatus');
+                status.classList.remove('locked');
+                const autoClickValue = document.getElementById('autoClickValue');
+                autoClickValue.style.display = 'inline-block';
+                if (gameState.upgrades.autoClicker.enabled) {
+                    status.classList.add('active');
+                    startAutoClicker();
+                }
+                document.getElementById('autoClickerBuy').style.display = 'none';
+                document.getElementById('autoClickerUpgrade').style.display = 'flex';
+            } else {
+                const status = document.getElementById('autoClickerStatus');
+                status.classList.add('locked');
+            }
+
+            // Auto-Clicker Status beim Laden korrekt setzen
+            function initializeAutoClicker() {
+                if (gameState.upgrades.autoClicker.active) {
+                    const status = document.getElementById('autoClickerStatus');
+                    status.classList.remove('locked');
+                    if (gameState.upgrades.autoClicker.enabled) {
+                        status.classList.add('active');
+                        startAutoClicker();
+                    }
+                }
+            }
+
             // Lade Daten beim Start
-            loadUserData();
+            loadUserData().then(() => {
+                initializeAutoClicker();
+            });
 
             // Element-Referenzen
             const coinsDisplay = document.getElementById('coins');
@@ -1038,16 +1069,45 @@
                 }
             });
 
-            // Update initial status
-            if (gameState.upgrades.autoClicker.active) {
+            // Initialisiere Auto-Clicker Status sofort nach dem Laden
+            document.addEventListener('DOMContentLoaded', () => {
                 const status = document.getElementById('autoClickerStatus');
-                status.classList.remove('locked');
-                if (gameState.upgrades.autoClicker.enabled) {
-                    status.classList.add('active');
+                if (gameState.upgrades.autoClicker.active) {
+                    status.classList.remove('locked');
+                    if (gameState.upgrades.autoClicker.enabled) {
+                        status.classList.add('active');
+                        startAutoClicker();
+                    }
+                } else {
+                    status.classList.add('locked');
                 }
-            } else {
-                const status = document.getElementById('autoClickerStatus');
-                status.classList.add('locked');
+            });
+
+            function startAutoClicker() {
+                // Erst alten Interval stoppen
+                stopAutoClicker();
+
+                if (gameState.upgrades.autoClicker.active && gameState.upgrades.autoClicker.enabled && !autoClickerInterval) {
+                    autoClickerInterval = setInterval(() => {
+                        gameState.coins += gameState.upgrades.autoClicker.value;
+                        addExp(0.1);
+                        updateDisplay();
+                        gameState.upgrades.autoClicker.lastUpdate = Date.now();
+                        saveUserData();
+                        const container = document.querySelector('.cookie-container');
+                        const containerRect = container.getBoundingClientRect();
+                        createSplitters(containerRect.width / 2, containerRect.height / 2);
+                    }, 1000);
+                    console.log('Auto-Clicker gestartet mit Wert:', gameState.upgrades.autoClicker.value);
+                }
+            }
+
+            function stopAutoClicker() {
+                if (autoClickerInterval) {
+                    clearInterval(autoClickerInterval);
+                    autoClickerInterval = null;
+                    console.log('Auto-Clicker gestoppt');
+                }
             }
         });
     </script>
