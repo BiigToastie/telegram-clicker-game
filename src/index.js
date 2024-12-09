@@ -21,9 +21,30 @@ async function saveUsers(users) {
     await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
 }
 
-const bot = new TelegramBot(process.env.BOT_TOKEN, { 
-    polling: true
-});
+let bot;
+try {
+    bot = new TelegramBot(process.env.BOT_TOKEN, {
+        polling: {
+            autoStart: true,
+            params: {
+                timeout: 10
+            }
+        }
+    });
+    
+    bot.on('polling_error', (error) => {
+        console.log('Bot Polling Error:', error.code);  // Log nur den Error-Code
+        if (error.code === 'ETELEGRAM') {
+            // Versuche Polling neu zu starten
+            bot.stopPolling();
+            setTimeout(() => {
+                bot.startPolling();
+            }, 5000);
+        }
+    });
+} catch (error) {
+    console.error('Bot Initialization Error:', error);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
