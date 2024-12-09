@@ -260,7 +260,7 @@
             }
         }
 
-        /* Neue Styles für den Auto-Clicker Status */
+        /* Auto-Clicker Status Button */
         .auto-clicker-status {
             position: absolute;
             left: -60px;
@@ -459,6 +459,9 @@
                         const centerY = clickButton.offsetHeight / 2;
                         createSplitters(centerX, centerY);
                     }, 1000);
+                    // Status-Button aktualisieren
+                    const status = document.getElementById('autoClickerStatus');
+                    status.classList.add('active');
                 }
             }
 
@@ -466,7 +469,11 @@
                 if (autoClickerInterval) {
                     clearInterval(autoClickerInterval);
                     autoClickerInterval = null;
-                    document.getElementById('autoClickerStatus').classList.remove('active');
+                    // Status-Button aktualisieren
+                    const status = document.getElementById('autoClickerStatus');
+                    status.classList.remove('active');
+                    gameState.autoClicker.enabled = false;
+                    saveUserData();
                 }
             }
 
@@ -487,14 +494,17 @@
                             message: 'Der Auto-Clicker ist jetzt ausgeschaltet!'
                         });
                     }
+                    saveUserData();
                 }
             });
 
-            // Starte Auto-Clicker beim Laden
+            // Beim Laden prüfen und Auto-Clicker starten wenn aktiv
             if (gameState.autoClicker.active) {
-                document.getElementById('autoClickerStatus').style.display = 'flex';
+                const status = document.getElementById('autoClickerStatus');
+                status.style.display = 'flex';
                 if (gameState.autoClicker.enabled) {
                     startAutoClicker();
+                    status.classList.add('active');
                 }
             }
 
@@ -621,7 +631,9 @@
                     updateDisplay();
                     document.getElementById('autoClickerItem').style.display = 'none';
                     document.getElementById('autoClickerUpgrade').style.display = 'flex';
-                    document.getElementById('autoClickerStatus').style.display = 'flex';
+                    const status = document.getElementById('autoClickerStatus');
+                    status.style.display = 'flex';
+                    status.classList.add('active');
                     tg.showPopup({
                         title: '🤖 Auto-Clicker aktiviert!',
                         message: 'Dein Auto-Clicker ist jetzt aktiv und klickt jede Sekunde!'
