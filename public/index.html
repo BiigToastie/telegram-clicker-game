@@ -366,6 +366,82 @@
             from { opacity: 1; transform: translateY(0); }
             to { opacity: 0; transform: translateY(-20px); }
         }
+
+        /* Styles für die Bestenliste */
+        .leaderboard-container {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 20px;
+            background: var(--tg-theme-secondary-bg-color);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .leaderboard-header h2 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+
+        .your-rank {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .leaderboard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .leaderboard-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .leaderboard-rank {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+
+        .rank-1 { background: #ffd700; color: #000; }
+        .rank-2 { background: #c0c0c0; color: #000; }
+        .rank-3 { background: #cd7f32; color: #000; }
+
+        .leaderboard-name {
+            flex: 1;
+        }
+
+        .leaderboard-coins {
+            font-weight: bold;
+            color: #2ea6ff;
+        }
+
+        .leaderboard-you {
+            background: rgba(46, 204, 113, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -418,6 +494,16 @@
                 <div class="upgrade-description">Erhöht den Auto-Clicker um 0.1 Coins/Sekunde (Aktuell: <span id="autoClickerValue">0.1</span>)</div>
             </div>
             <div class="upgrade-cost" id="autoClickerUpgradeCost">200 🪙</div>
+        </div>
+    </div>
+
+    <div class="leaderboard-container">
+        <div class="leaderboard-header">
+            <h2>🏆 Bestenliste</h2>
+            <span class="your-rank">Dein Rang: <span id="yourRank">-</span></span>
+        </div>
+        <div class="leaderboard-list" id="leaderboardList">
+            <!-- Wird dynamisch gefüllt -->
         </div>
     </div>
 
@@ -688,6 +774,46 @@
 
             // Initiales Update
             updateDisplay();
+
+            async function updateLeaderboard() {
+                try {
+                    const response = await fetch('/api/leaderboard');
+                    const leaderboard = await response.json();
+                    const leaderboardList = document.getElementById('leaderboardList');
+                    leaderboardList.innerHTML = '';
+
+                    const currentUser = tg.initDataUnsafe?.user?.id;
+                    let yourRank = '-';
+
+                    leaderboard.forEach((player, index) => {
+                        const item = document.createElement('div');
+                        item.className = `leaderboard-item${player.id === currentUser ? ' leaderboard-you' : ''}`;
+                        
+                        const rank = index + 1;
+                        if (player.id === currentUser) yourRank = rank;
+
+                        item.innerHTML = `
+                            <div class="leaderboard-rank${rank <= 3 ? ` rank-${rank}` : ''}">${rank}</div>
+                            <div class="leaderboard-name">${player.name}</div>
+                            <div class="leaderboard-coins">${Number(player.coins).toFixed(2)} 🪙</div>
+                        `;
+
+                        item.addEventListener('click', () => {
+                            window.open(`https://t.me/${player.username}`);
+                        });
+
+                        leaderboardList.appendChild(item);
+                    });
+
+                    document.getElementById('yourRank').textContent = yourRank;
+                } catch (error) {
+                    console.error('Fehler beim Laden der Bestenliste:', error);
+                }
+            }
+
+            // Bestenliste alle 30 Sekunden aktualisieren
+            setInterval(updateLeaderboard, 30000);
+            updateLeaderboard();
         });
     </script>
 </body>
