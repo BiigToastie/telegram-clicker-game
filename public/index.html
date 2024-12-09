@@ -782,20 +782,42 @@
                     const userData = tg.initDataUnsafe?.user;
                     const userFullName = userData?.first_name + (userData?.last_name ? ' ' + userData?.last_name : '');
 
+                    // Tiefes Klonen des gameState, um sicherzustellen, dass alle Werte korrekt gespeichert werden
+                    const gameStateToSave = JSON.parse(JSON.stringify({
+                        coins: gameState.coins,
+                        multiplier: gameState.multiplier,
+                        level: gameState.level,
+                        upgrades: {
+                            multiplier: {
+                                cost: gameState.upgrades.multiplier.cost,
+                                increment: gameState.upgrades.multiplier.increment,
+                                costIncrease: gameState.upgrades.multiplier.costIncrease
+                            },
+                            autoClicker: {
+                                active: gameState.upgrades.autoClicker.active,
+                                enabled: gameState.upgrades.autoClicker.enabled,
+                                value: gameState.upgrades.autoClicker.value,
+                                cost: gameState.upgrades.autoClicker.cost,
+                                upgradeCost: gameState.upgrades.autoClicker.upgradeCost,
+                                costIncrease: gameState.upgrades.autoClicker.costIncrease,
+                                lastUpdate: gameState.upgrades.autoClicker.lastUpdate
+                            }
+                        }
+                    }));
+
                     await fetch(`/api/user/${telegramId}/save`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            coins: gameState.coins,
-                            multiplier: gameState.multiplier,
-                            level: gameState.level,
-                            upgrades: gameState.upgrades,
+                            ...gameStateToSave,
                             name: userFullName || 'Unbekannter Spieler',
                             username: userData?.username || ''
                         })
                     });
+
+                    console.log('Gespeicherter Zustand:', gameStateToSave);
                 } catch (error) {
                     console.error('Fehler beim Speichern:', error);
                 }
