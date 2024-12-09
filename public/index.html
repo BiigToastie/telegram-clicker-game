@@ -7,19 +7,65 @@
     <title>Clicker Game</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* ... (all existing styles remain unchanged) ... */
+        :root {
+            --tg-theme-bg-color: #000000;
+            --tg-theme-text-color: #ffffff;
+            --tg-theme-button-color: #0088cc;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-secondary-bg-color: #1a1a1a;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+            width: 100%;
+            padding: 10px;
+            background-color: var(--tg-theme-secondary-bg-color);
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Level Card Styles */
+        .level-card {
+            grid-column: 1 / -1;
+            order: -1;
+        }
+
+        .exp-bar-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .exp-bar {
+            height: 100%;
+            background: #00ff00;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body>
     <!-- ... (all existing HTML content remains unchanged until the leaderboard section) ... -->
 
-    <div class="info-text">
-        Tipp: Je mehr Multiplier du kaufst, desto schneller sammelst du Coins!
+    <div class="header">
+        <h1>🎮 G4ngKlicker</h1>
+        <p>Klicke und sammle Coins, kaufe Upgrades im Shop!</p>
     </div>
 
     <div class="stats">
+        <div class="stat-card level-card">
+            <div>📊 Level</div>
+            <div class="stat-value" id="level">0</div>
+            <div class="exp-bar-container">
+                <div class="exp-bar" id="expBar"></div>
+            </div>
+        </div>
         <div class="stat-card">
-            <div>🪙 Coins</div>
+            <div>🌑 Coins</div>
             <div class="stat-value" id="coins">0</div>
         </div>
         <div class="stat-card">
