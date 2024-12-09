@@ -740,6 +740,7 @@
             // Cookie-Button Click Handler
             clickButton.addEventListener('click', (e) => {
                 gameState.coins += gameState.multiplier;
+                addExp(1);
                 updateDisplay();
                 tg.HapticFeedback.impactOccurred('light');
                 saveUserData();
@@ -771,7 +772,7 @@
                     gameState.coins -= gameState.upgrades.multiplier.cost;
                     gameState.multiplier += gameState.upgrades.multiplier.increment;
                     gameState.upgrades.multiplier.cost = Math.ceil(Number(gameState.upgrades.multiplier.cost) * gameState.upgrades.multiplier.costIncrease);
-                    addExp(1);
+                    addExp(25);
                     updateDisplay();
                     tg.HapticFeedback.notificationOccurred('success');
                     showToast(`🎉 Multiplier: ${gameState.multiplier.toFixed(2)} | Nächstes: ${gameState.upgrades.multiplier.cost} Coins`);
@@ -802,7 +803,7 @@
                     gameState.coins -= gameState.upgrades.autoClicker.upgradeCost;
                     gameState.upgrades.autoClicker.value += 0.1;
                     gameState.upgrades.autoClicker.upgradeCost = Math.ceil(gameState.upgrades.autoClicker.upgradeCost * gameState.upgrades.autoClicker.costIncrease);
-                    addExp(25);
+                    addExp(100);
                     updateDisplay();
                     showToast(`⚡ Auto-Clicker: ${gameState.upgrades.autoClicker.value.toFixed(2)}/s`);
                     saveUserData();

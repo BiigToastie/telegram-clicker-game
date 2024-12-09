@@ -59,11 +59,25 @@ app.get('/api/user/:telegramId', async (req, res) => {
         const users = await loadUsers();
         const user = users[req.params.telegramId] || {
             coins: 0,
-            multiplier: 1,
+            multiplier: 0.1,
+            level: {
+                current: 0,
+                exp: 0,
+                nextLevel: 100
+            },
             upgrades: {
                 multiplier: {
-                    cost: 10,
-                    increment: 0.5
+                    cost: 5,
+                    increment: 0.1,
+                    costIncrease: 1.3
+                },
+                autoClicker: {
+                    active: false,
+                    cost: 100,
+                    value: 0.1,
+                    upgradeCost: 200,
+                    costIncrease: 1.5,
+                    lastUpdate: Date.now()
                 }
             }
         };
@@ -77,11 +91,12 @@ app.get('/api/user/:telegramId', async (req, res) => {
 
 app.post('/api/user/:telegramId/save', async (req, res) => {
     try {
-        const { coins, multiplier, upgrades } = req.body;
+        const { coins, multiplier, level, upgrades } = req.body;
         const users = await loadUsers();
         users[req.params.telegramId] = {
             coins,
             multiplier,
+            level,
             upgrades,
             lastUpdated: new Date()
         };
