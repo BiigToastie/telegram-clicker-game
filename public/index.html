@@ -183,6 +183,7 @@
         }
 
         .cookie-container {
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -249,9 +250,10 @@
 
         /* Neue Styles für den Auto-Clicker Status */
         .auto-clicker-status {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
+            position: absolute;
+            left: -50px;
+            top: 50%;
+            transform: translateY(-50%);
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -388,7 +390,11 @@
                         gameState.coins += gameState.autoClicker.multiplier;
                         updateDisplay();
                         saveUserData();
-                        simulateClick();
+                        // Cookie-Animation
+                        clickButton.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            clickButton.style.transform = 'scale(1)';
+                        }, 100);
                     }, 1000);
                     document.getElementById('autoClickerStatus').classList.add('active');
                 }
@@ -520,14 +526,14 @@
                 if (gameState.coins >= gameState.upgrades.multiplier.cost) {
                     gameState.coins -= gameState.upgrades.multiplier.cost;
                     gameState.multiplier += gameState.upgrades.multiplier.increment;
-                    gameState.upgrades.multiplier.cost = Math.ceil(gameState.upgrades.multiplier.cost * gameState.upgrades.multiplier.costIncrease);
+                    gameState.upgrades.multiplier.cost = Math.ceil(Number(gameState.upgrades.multiplier.cost) * gameState.upgrades.multiplier.costIncrease);
                     updateDisplay();
                     tg.HapticFeedback.notificationOccurred('success');
                     tg.showPopup({
-                        title: 'Upgrade gekauft!',
+                        title: '🎉 Upgrade gekauft!',
                         message: `Neuer Multiplier: ${gameState.multiplier.toFixed(2)} pro Klick\nNächstes Upgrade kostet: ${gameState.upgrades.multiplier.cost} Coins`
                     });
-                    saveUserData(); // Speichern nach Upgrade
+                    saveUserData();
                 } else {
                     tg.HapticFeedback.notificationOccurred('error');
                     tg.showPopup({
@@ -578,7 +584,7 @@
                 coinsDisplay.textContent = gameState.coins.toFixed(2);
                 multiplierDisplay.textContent = gameState.multiplier.toFixed(2);
                 clickValueDisplay.textContent = gameState.multiplier.toFixed(2);
-                multiplierCost.textContent = `${gameState.upgrades.multiplier.cost} 🪙`;
+                multiplierCost.textContent = `${Math.ceil(gameState.upgrades.multiplier.cost)} 🪙`;
                 if (gameState.autoClicker.active) {
                     document.getElementById('autoClickValue').style.display = 'inline-block';
                     document.getElementById('autoClickMultiplier').textContent = 
