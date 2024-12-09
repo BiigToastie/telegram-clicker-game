@@ -525,7 +525,7 @@
             <div class="stat-value" id="coins">0</div>
         </div>
         <div class="stat-card level-card">
-            <div>📊 Level <span id="levelDisplay">0</span> <span style="opacity: 0.7; margin-left: 8px;">Rang <span id="playerRank">#-</span></span></div>
+            <div>📊 Level <span id="levelDisplay">0</span> <span style="opacity: 0.7; margin-left: 8px;">Platz <span id="playerRank">-</span></span></div>
             <div style="font-size: 0.8em; opacity: 0.8; margin-top: 2px;">
                 Nächstes Level: <span id="nextLevelExpDisplay">100</span> EXP
             </div>
@@ -900,7 +900,7 @@
                         const rank = index + 1;
                         if (player.id === currentUser) {
                             yourRank = rank;
-                            document.getElementById('playerRank').textContent = `#${rank}`;
+                            document.getElementById('playerRank').textContent = rank;
                         }
 
                         item.innerHTML = `
