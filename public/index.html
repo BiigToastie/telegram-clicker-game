@@ -468,22 +468,23 @@
 
         .level-display {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
         }
 
         .level-circle {
             background: rgba(46, 204, 113, 0.2);
             border: 2px solid #2ecc71;
             border-radius: 50%;
-            min-width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0 8px;
             font-weight: bold;
             color: #2ecc71;
+            margin: 0 auto;
         }
 
         .exp-bar-container {
@@ -546,7 +547,7 @@
         </div>
         <div class="stat-card level-card">
             <div class="level-display">
-                <div>📊 Level</div>
+                <div>Level</div>
                 <div class="level-circle" id="levelDisplay">0</div>
             </div>
             <div style="font-size: 0.8em; opacity: 0.8; margin-top: 2px;">
