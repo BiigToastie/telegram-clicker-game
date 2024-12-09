@@ -489,8 +489,11 @@
             <div class="stat-value" id="coins">0</div>
         </div>
         <div class="stat-card level-card">
-            <div>📊 Level</div>
+            <div>📊 Level <span id="playerRank" style="opacity: 0.7; font-size: 0.9em;">#-</span></div>
             <div class="stat-value" id="level">0</div>
+            <div style="font-size: 0.8em; opacity: 0.8; margin-top: 2px;">
+                Nächstes Level: <span id="nextLevelExpDisplay">100</span> EXP
+            </div>
             <div class="exp-bar-container">
                 <div class="exp-bar" id="expBar"></div>
                 <div class="exp-text">
@@ -820,6 +823,7 @@
                 document.getElementById('level').textContent = gameState.level.current;
                 document.getElementById('currentExp').textContent = Math.floor(gameState.level.exp);
                 document.getElementById('nextLevelExp').textContent = gameState.level.nextLevel;
+                document.getElementById('nextLevelExpDisplay').textContent = gameState.level.nextLevel;
                 document.getElementById('expBar').style.width = `${(gameState.level.exp / gameState.level.nextLevel) * 100}%`;
                 if (gameState.upgrades.autoClicker.active) {
                     const autoClickValue = document.getElementById('autoClickValue');
@@ -851,7 +855,10 @@
                         item.className = `leaderboard-item${player.id === currentUser ? ' leaderboard-you' : ''}`;
                         
                         const rank = index + 1;
-                        if (player.id === currentUser) yourRank = rank;
+                        if (player.id === currentUser) {
+                            yourRank = rank;
+                            document.getElementById('playerRank').textContent = `#${rank}`;
+                        }
 
                         item.innerHTML = `
                             <div class="leaderboard-rank${rank <= 3 ? ` rank-${rank}` : ''}">${rank}</div>
@@ -877,7 +884,9 @@
             updateLeaderboard();
 
             function calculateExpForNextLevel(level) {
-                return Math.floor(100 * Math.pow(1.2, level));
+                if (level === 0) return 100;  // Level 0 -> 1 braucht 100 EXP
+                if (level === 1) return 150;  // Level 1 -> 2 braucht 150 EXP
+                return Math.floor(150 * Math.pow(1.45, level - 1));  // Ab Level 2 steigt es exponentiell
             }
 
             function addExp(amount) {
@@ -886,7 +895,7 @@
                     gameState.level.exp -= gameState.level.nextLevel;
                     gameState.level.current++;
                     gameState.level.nextLevel = calculateExpForNextLevel(gameState.level.current);
-                    showToast(`🎖 Level Up! Du bist jetzt Level ${gameState.level.current}!`);
+                    showToast(`🎖 Level Up! Du bist jetzt Level ${gameState.level.current}!\nNächstes Level: ${gameState.level.nextLevel} EXP`);
                 }
                 updateDisplay();
             }
