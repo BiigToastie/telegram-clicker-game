@@ -13,14 +13,8 @@
 <body>
     <!-- ... (all existing HTML content remains unchanged until the leaderboard section) ... -->
 
-    <div class="leaderboard-container">
-        <div class="leaderboard-header">
-            <h2>🏆 Bestenliste</h2>
-            <span class="your-rank">Dein Rang: <span id="yourRank">-</span></span>
-        </div>
-        <div class="leaderboard-list" id="leaderboardList">
-            <!-- Wird dynamisch gefüllt -->
-        </div>
+    <div class="info-text">
+        Tipp: Je mehr Multiplier du kaufst, desto schneller sammelst du Coins!
     </div>
 
     <!-- ... (all remaining HTML content remains unchanged) ... -->
@@ -28,10 +22,6 @@
     <script>
         window.addEventListener('load', () => {
             // ... (all existing JavaScript code remains unchanged until the leaderboard section) ...
-
-            // Bestenliste alle 5 Sekunden aktualisieren
-            setInterval(updateLeaderboard, 5000);
-            updateLeaderboard();
 
             // Speichere Spielerdaten
             async function saveUserData() {
