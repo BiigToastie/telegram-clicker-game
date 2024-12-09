@@ -39,8 +39,6 @@
                     const telegramId = tg.initDataUnsafe?.user?.id;
                     if (!telegramId) return;
 
-                    const telegramUsername = tg.initDataUnsafe?.user?.username;
-
                     await fetch(`/api/user/${telegramId}/save`, {
                         method: 'POST',
                         headers: {
@@ -50,8 +48,7 @@
                             coins: gameState.coins,
                             multiplier: gameState.multiplier,
                             level: gameState.level,
-                            upgrades: gameState.upgrades,
-                            telegramUsername: telegramUsername
+                            upgrades: gameState.upgrades
                         })
                     });
                 } catch (error) {

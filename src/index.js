@@ -113,11 +113,9 @@ app.get('/api/leaderboard', async (req, res) => {
         const users = await loadUsers();
         const leaderboard = Object.entries(users).map(([id, user]) => ({
             id,
-            name: user.telegramUsername ? `@${user.telegramUsername}` : 'Anonymous',
+            name: `@${user.username || 'Anonymous'}`,
             coins: user.coins,
-            level: user.level?.current || 0,
-            exp: user.level?.exp || 0,
-            nextLevel: user.level?.nextLevel || 100
+            level: user.level?.current || 0
         }))
         .sort((a, b) => {
             // Primär nach Level sortieren
