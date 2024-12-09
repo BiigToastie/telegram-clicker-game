@@ -136,6 +136,73 @@
             text-align: center;
             margin-top: 20px;
         }
+
+        /* Neue Styles für den Cookie-Button */
+        .cookie-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #b17a45 0%, #8b5e2e 100%);
+            border: none;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.1s;
+            margin: 20px auto;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .cookie-button::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #593315;
+            border-radius: 50%;
+            top: 30%;
+            left: 30%;
+            box-shadow: 
+                40px 20px 0 #593315,
+                80px 60px 0 #593315,
+                30px 80px 0 #593315,
+                60px 40px 0 #593315;
+        }
+
+        .cookie-button:active {
+            transform: scale(0.95);
+        }
+
+        .cookie-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .click-value {
+            font-size: 1.2em;
+            color: var(--tg-theme-text-color);
+            margin-top: 10px;
+            background: var(--tg-theme-secondary-bg-color);
+            padding: 5px 15px;
+            border-radius: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Anpassen der bestehenden Button-Container */
+        .button-container {
+            margin-top: 20px;
+        }
+
+        .shop-button {
+            width: 100%;
+            max-width: 300px;
+        }
     </style>
 </head>
 <body>
@@ -179,6 +246,11 @@
 
     <div class="info-text">
         Tipp: Je mehr Multiplier du kaufst, desto schneller sammelst du Coins!
+    </div>
+
+    <div class="cookie-container">
+        <button class="cookie-button" id="clickButton"></button>
+        <div class="click-value">+<span id="clickValue">1.0</span> Coins pro Klick</div>
     </div>
 
     <script>
