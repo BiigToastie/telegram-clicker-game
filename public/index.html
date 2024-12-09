@@ -617,6 +617,7 @@
                 if (gameState.upgrades.autoClicker.active && !autoClickerInterval) {
                     autoClickerInterval = setInterval(() => {
                         gameState.coins += gameState.upgrades.autoClicker.value;
+                        addExp(0.1);
                         updateDisplay();
                         gameState.upgrades.autoClicker.lastUpdate = Date.now();
                         saveUserData();
@@ -743,7 +744,7 @@
             // Cookie-Button Click Handler
             clickButton.addEventListener('click', (e) => {
                 gameState.coins += gameState.multiplier;
-                addExp(1);
+                addExp(0.5);
                 updateDisplay();
                 tg.HapticFeedback.impactOccurred('light');
                 saveUserData();
