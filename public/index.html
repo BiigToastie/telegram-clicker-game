@@ -525,8 +525,7 @@
             <div class="stat-value" id="coins">0</div>
         </div>
         <div class="stat-card level-card">
-            <div>📊 Level <span id="playerRank" style="opacity: 0.7; font-size: 0.9em;">#-</span></div>
-            <div class="stat-value" id="level">0</div>
+            <div>📊 Level <span id="levelDisplay">0</span> <span style="opacity: 0.7; margin-left: 8px;">Rang <span id="playerRank">#-</span></span></div>
             <div style="font-size: 0.8em; opacity: 0.8; margin-top: 2px;">
                 Nächstes Level: <span id="nextLevelExpDisplay">100</span> EXP
             </div>
@@ -863,7 +862,7 @@
                 multiplierDisplay.textContent = gameState.multiplier.toFixed(2);
                 clickValueDisplay.textContent = gameState.multiplier.toFixed(2);
                 multiplierCost.textContent = `${Math.ceil(gameState.upgrades.multiplier.cost)} 🪙`;
-                document.getElementById('level').textContent = gameState.level.current;
+                document.getElementById('levelDisplay').textContent = gameState.level.current;
                 document.getElementById('currentExp').textContent = Math.floor(gameState.level.exp);
                 document.getElementById('nextLevelExp').textContent = gameState.level.nextLevel;
                 document.getElementById('nextLevelExpDisplay').textContent = gameState.level.nextLevel;
