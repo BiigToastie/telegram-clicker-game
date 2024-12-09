@@ -234,6 +234,39 @@
                 outline: none;
             }
         }
+
+        /* Neue Styles für den Auto-Clicker Status */
+        .auto-clicker-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #2c2c2c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .auto-clicker-status.active {
+            background: #2ecc71;
+            box-shadow: 0 0 10px #2ecc71;
+        }
+
+        .auto-clicker-status .icon {
+            font-size: 20px;
+        }
+
+        @keyframes autoClick {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -292,6 +325,10 @@
         Tipp: Je mehr Multiplier du kaufst, desto schneller sammelst du Coins!
     </div>
 
+    <div class="auto-clicker-status" id="autoClickerStatus">
+        <div class="icon">🤖</div>
+    </div>
+
     <script>
         window.addEventListener('load', () => {
             const tg = window.Telegram.WebApp;
@@ -303,10 +340,11 @@
                 multiplier: 0.1,
                 autoClicker: {
                     active: false,
+                    enabled: false,
                     multiplier: 0.1,
                     cost: 100,
                     upgradeCost: 200,
-                    costIncrease: 2.0  // Exponentieller Anstieg
+                    costIncrease: 2.0
                 },
                 upgrades: {
                     multiplier: {
@@ -320,19 +358,59 @@
             // Auto-Clicker Timer
             let autoClickerInterval;
 
+            function simulateClick() {
+                clickButton.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    clickButton.style.transform = 'scale(1)';
+                }, 100);
+            }
+
             function startAutoClicker() {
-                if (gameState.autoClicker.active && !autoClickerInterval) {
+                if (gameState.autoClicker.active && gameState.autoClicker.enabled && !autoClickerInterval) {
                     autoClickerInterval = setInterval(() => {
                         gameState.coins += gameState.autoClicker.multiplier;
                         updateDisplay();
                         saveUserData();
+                        simulateClick();
                     }, 1000);
+                    document.getElementById('autoClickerStatus').classList.add('active');
                 }
             }
 
+            function stopAutoClicker() {
+                if (autoClickerInterval) {
+                    clearInterval(autoClickerInterval);
+                    autoClickerInterval = null;
+                    document.getElementById('autoClickerStatus').classList.remove('active');
+                }
+            }
+
+            // Auto-Clicker Status Toggle
+            document.getElementById('autoClickerStatus').addEventListener('click', () => {
+                if (gameState.autoClicker.active) {
+                    gameState.autoClicker.enabled = !gameState.autoClicker.enabled;
+                    if (gameState.autoClicker.enabled) {
+                        startAutoClicker();
+                        tg.showPopup({
+                            title: '🤖 Auto-Clicker aktiviert',
+                            message: 'Der Auto-Clicker ist jetzt eingeschaltet!'
+                        });
+                    } else {
+                        stopAutoClicker();
+                        tg.showPopup({
+                            title: '🤖 Auto-Clicker deaktiviert',
+                            message: 'Der Auto-Clicker ist jetzt ausgeschaltet!'
+                        });
+                    }
+                }
+            });
+
             // Starte Auto-Clicker beim Laden
             if (gameState.autoClicker.active) {
-                startAutoClicker();
+                document.getElementById('autoClickerStatus').style.display = 'flex';
+                if (gameState.autoClicker.enabled) {
+                    startAutoClicker();
+                }
             }
 
             const coinsDisplay = document.getElementById('coins');
@@ -352,9 +430,23 @@
                     const response = await fetch(`/api/user/${telegramId}`);
                     const userData = await response.json();
                     
-                    gameState.coins = userData.coins;
-                    gameState.multiplier = userData.multiplier;
-                    gameState.upgrades = userData.upgrades;
+                    gameState.coins = userData.coins || 0;
+                    gameState.multiplier = userData.multiplier || 0.1;
+                    gameState.autoClicker = userData.autoClicker || {
+                        active: false,
+                        enabled: false,
+                        multiplier: 0.1,
+                        cost: 100,
+                        upgradeCost: 200,
+                        costIncrease: 2.0
+                    };
+                    gameState.upgrades = userData.upgrades || {
+                        multiplier: {
+                            cost: 1,
+                            increment: 0.1,
+                            costIncrease: 1.2
+                        }
+                    };
                     
                     updateDisplay();
                 } catch (error) {
@@ -376,6 +468,7 @@
                         body: JSON.stringify({
                             coins: gameState.coins,
                             multiplier: gameState.multiplier,
+                            autoClicker: gameState.autoClicker,
                             upgrades: gameState.upgrades
                         })
                     });
@@ -414,7 +507,7 @@
                     updateDisplay();
                     tg.HapticFeedback.notificationOccurred('success');
                     tg.showPopup({
-                        title: '🎉 Upgrade gekauft!',
+                        title: 'Upgrade gekauft!',
                         message: `Neuer Multiplier: ${gameState.multiplier.toFixed(2)} pro Klick\nNächstes Upgrade kostet: ${gameState.upgrades.multiplier.cost} Coins`
                     });
                     saveUserData(); // Speichern nach Upgrade
@@ -431,10 +524,12 @@
                 if (!gameState.autoClicker.active && gameState.coins >= gameState.autoClicker.cost) {
                     gameState.coins -= gameState.autoClicker.cost;
                     gameState.autoClicker.active = true;
+                    gameState.autoClicker.enabled = true;
                     startAutoClicker();
                     updateDisplay();
                     document.getElementById('autoClickerItem').style.display = 'none';
                     document.getElementById('autoClickerUpgrade').style.display = 'flex';
+                    document.getElementById('autoClickerStatus').style.display = 'flex';
                     tg.showPopup({
                         title: '🤖 Auto-Clicker aktiviert!',
                         message: 'Dein Auto-Clicker ist jetzt aktiv und klickt jede Sekunde!'
