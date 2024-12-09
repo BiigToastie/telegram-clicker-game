@@ -7,47 +7,179 @@
     <title>Clicker Game</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --tg-theme-bg-color: #1a1a1a;
+            --tg-theme-text-color: #ffffff;
+            --tg-theme-button-color: #2ea6ff;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-secondary-bg-color: #2c2c2c;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px;
-            background-color: var(--tg-theme-bg-color, #1e1e1e);
-            color: var(--tg-theme-text-color, white);
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            min-height: 100vh;
+            margin: 0;
         }
-        .stats {
-            font-size: 1.2em;
-            margin: 20px 0;
+
+        .header {
             text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--tg-theme-secondary-bg-color);
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background-color: var(--tg-theme-secondary-bg-color);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 5px;
+            color: #2ea6ff;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+        }
+
         .button {
-            background-color: var(--tg-theme-button-color, #2ea6ff);
+            background-color: var(--tg-theme-button-color);
             border: none;
-            color: var(--tg-theme-button-text-color, white);
-            padding: 15px 30px;
-            border-radius: 10px;
+            color: var(--tg-theme-button-text-color);
+            padding: 15px 20px;
+            border-radius: 12px;
             font-size: 1.1em;
-            margin: 10px;
             cursor: pointer;
-            transition: transform 0.1s;
-            -webkit-tap-highlight-color: transparent;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         .button:active {
-            transform: scale(0.95);
+            transform: scale(0.98);
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
         }
+
         .shop-button {
-            background-color: var(--tg-theme-secondary-bg-color, #ff9f1c);
+            background-color: #ff9f1c;
+        }
+
+        .upgrade-container {
+            display: none;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .upgrade-item {
+            background-color: var(--tg-theme-secondary-bg-color);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upgrade-info {
+            flex: 1;
+        }
+
+        .upgrade-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-description {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .upgrade-cost {
+            background-color: #2ea6ff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-left: 10px;
+        }
+
+        .info-text {
+            font-size: 0.9em;
+            opacity: 0.7;
+            text-align: center;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="stats">
-        <div>🪙 Coins: <span id="coins">0</span></div>
-        <div>💰 Pro Klick: <span id="multiplier">1</span></div>
+    <div class="header">
+        <h1>🎮 Clicker Game</h1>
+        <p>Klicke und sammle Coins, kaufe Upgrades im Shop!</p>
     </div>
-    <button class="button" id="clickButton">🎮 Klicken</button>
-    <button class="button shop-button" id="shopButton">🛍 Shop</button>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div>🪙 Coins</div>
+            <div class="stat-value" id="coins">0</div>
+        </div>
+        <div class="stat-card">
+            <div>💰 Pro Klick</div>
+            <div class="stat-value" id="multiplier">1.0</div>
+        </div>
+    </div>
+
+    <div class="button-container">
+        <button class="button" id="clickButton">
+            <span>🎮 Klicken</span>
+            <span>+<span id="clickValue">1.0</span> Coins</span>
+        </button>
+        <button class="button shop-button" id="shopButton">
+            <span>🛍 Shop öffnen</span>
+            <span>Upgrades verfügbar!</span>
+        </button>
+    </div>
+
+    <div class="upgrade-container" id="upgradeContainer">
+        <div class="upgrade-item">
+            <div class="upgrade-info">
+                <div class="upgrade-title">💰 Coin Multiplier</div>
+                <div class="upgrade-description">Erhöht den Coin-Gewinn pro Klick um 0.5</div>
+            </div>
+            <div class="upgrade-cost" id="multiplierCost">10 🪙</div>
+        </div>
+        <!-- Weitere Upgrade-Items hier -->
+    </div>
+
+    <div class="info-text">
+        Tipp: Je mehr Multiplier du kaufst, desto schneller sammelst du Coins!
+    </div>
 
     <script>
         window.addEventListener('load', () => {
@@ -57,35 +189,57 @@
             
             let gameState = {
                 coins: 0,
-                multiplier: 1
+                multiplier: 1,
+                upgrades: {
+                    multiplier: {
+                        cost: 10,
+                        increment: 0.5
+                    }
+                }
             };
 
             const coinsDisplay = document.getElementById('coins');
             const multiplierDisplay = document.getElementById('multiplier');
+            const clickValueDisplay = document.getElementById('clickValue');
             const clickButton = document.getElementById('clickButton');
             const shopButton = document.getElementById('shopButton');
+            const upgradeContainer = document.getElementById('upgradeContainer');
+            const multiplierCost = document.getElementById('multiplierCost');
 
             clickButton.addEventListener('click', () => {
                 gameState.coins += gameState.multiplier;
                 updateDisplay();
                 tg.HapticFeedback.impactOccurred('light');
+                
+                // Animation für den Click
+                clickButton.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    clickButton.style.transform = 'scale(1)';
+                }, 100);
             });
 
             shopButton.addEventListener('click', () => {
-                if (gameState.coins >= 10) {
-                    gameState.coins -= 10;
-                    gameState.multiplier += 0.5;
+                const isShopOpen = upgradeContainer.style.display === 'block';
+                upgradeContainer.style.display = isShopOpen ? 'none' : 'block';
+                shopButton.textContent = isShopOpen ? '🛍 Shop öffnen' : '🔙 Zurück zum Spiel';
+            });
+
+            document.querySelector('.upgrade-item').addEventListener('click', () => {
+                if (gameState.coins >= gameState.upgrades.multiplier.cost) {
+                    gameState.coins -= gameState.upgrades.multiplier.cost;
+                    gameState.multiplier += gameState.upgrades.multiplier.increment;
+                    gameState.upgrades.multiplier.cost = Math.ceil(gameState.upgrades.multiplier.cost * 1.5);
                     updateDisplay();
                     tg.HapticFeedback.notificationOccurred('success');
                     tg.showPopup({
                         title: '🎉 Upgrade gekauft!',
-                        message: `Neuer Multiplier: ${gameState.multiplier.toFixed(1)}`
+                        message: `Neuer Multiplier: ${gameState.multiplier.toFixed(1)}\nNächstes Upgrade kostet: ${gameState.upgrades.multiplier.cost} Coins`
                     });
                 } else {
                     tg.HapticFeedback.notificationOccurred('error');
                     tg.showPopup({
                         title: '❌ Nicht genug Coins',
-                        message: 'Du brauchst mindestens 10 Coins!'
+                        message: `Du brauchst ${gameState.upgrades.multiplier.cost} Coins für dieses Upgrade!`
                     });
                 }
             });
@@ -93,7 +247,12 @@
             function updateDisplay() {
                 coinsDisplay.textContent = gameState.coins.toFixed(1);
                 multiplierDisplay.textContent = gameState.multiplier.toFixed(1);
+                clickValueDisplay.textContent = gameState.multiplier.toFixed(1);
+                multiplierCost.textContent = `${gameState.upgrades.multiplier.cost} 🪙`;
             }
+
+            // Initiales Update
+            updateDisplay();
         });
     </script>
 </body>
