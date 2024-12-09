@@ -442,6 +442,39 @@
         .leaderboard-you {
             background: rgba(46, 204, 113, 0.1);
         }
+
+        /* Styles für Level und EXP Bar */
+        .level-card {
+            grid-column: 1 / -1;
+            order: -1;
+        }
+
+        .exp-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 3px;
+            margin-top: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .exp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .exp-text {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8em;
+            white-space: nowrap;
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -454,6 +487,16 @@
         <div class="stat-card">
             <div>🪙 Coins</div>
             <div class="stat-value" id="coins">0</div>
+        </div>
+        <div class="stat-card level-card">
+            <div>📊 Level</div>
+            <div class="stat-value" id="level">0</div>
+            <div class="exp-bar-container">
+                <div class="exp-bar" id="expBar"></div>
+                <div class="exp-text">
+                    <span id="currentExp">0</span>/<span id="nextLevelExp">100</span> EXP
+                </div>
+            </div>
         </div>
         <div class="stat-card">
             <div>💰 Pro Klick</div>
@@ -526,6 +569,11 @@
             let gameState = {
                 coins: 0,
                 multiplier: 0.1,
+                level: {
+                    current: 0,
+                    exp: 0,
+                    nextLevel: 100  // EXP für Level 1
+                },
                 upgrades: {
                     multiplier: {
                         cost: 5,
@@ -621,6 +669,11 @@
                     gameState = {
                         coins: Number(userData.coins || 0),
                         multiplier: Number(userData.multiplier || 0.1),
+                        level: {
+                            current: Number(userData.level?.current || 0),
+                            exp: Number(userData.level?.exp || 0),
+                            nextLevel: Number(userData.level?.nextLevel || 100)
+                        },
                         upgrades: {
                             multiplier: {
                                 cost: Number(userData.upgrades?.multiplier?.cost || 5),
@@ -665,6 +718,7 @@
                         body: JSON.stringify({
                             coins: gameState.coins,
                             multiplier: gameState.multiplier,
+                            level: gameState.level,
                             upgrades: gameState.upgrades
                         })
                     });
@@ -717,6 +771,7 @@
                     gameState.coins -= gameState.upgrades.multiplier.cost;
                     gameState.multiplier += gameState.upgrades.multiplier.increment;
                     gameState.upgrades.multiplier.cost = Math.ceil(Number(gameState.upgrades.multiplier.cost) * gameState.upgrades.multiplier.costIncrease);
+                    addExp(1);
                     updateDisplay();
                     tg.HapticFeedback.notificationOccurred('success');
                     showToast(`🎉 Multiplier: ${gameState.multiplier.toFixed(2)} | Nächstes: ${gameState.upgrades.multiplier.cost} Coins`);
@@ -747,6 +802,7 @@
                     gameState.coins -= gameState.upgrades.autoClicker.upgradeCost;
                     gameState.upgrades.autoClicker.value += 0.1;
                     gameState.upgrades.autoClicker.upgradeCost = Math.ceil(gameState.upgrades.autoClicker.upgradeCost * gameState.upgrades.autoClicker.costIncrease);
+                    addExp(25);
                     updateDisplay();
                     showToast(`⚡ Auto-Clicker: ${gameState.upgrades.autoClicker.value.toFixed(2)}/s`);
                     saveUserData();
@@ -760,6 +816,10 @@
                 multiplierDisplay.textContent = gameState.multiplier.toFixed(2);
                 clickValueDisplay.textContent = gameState.multiplier.toFixed(2);
                 multiplierCost.textContent = `${Math.ceil(gameState.upgrades.multiplier.cost)} 🪙`;
+                document.getElementById('level').textContent = gameState.level.current;
+                document.getElementById('currentExp').textContent = Math.floor(gameState.level.exp);
+                document.getElementById('nextLevelExp').textContent = gameState.level.nextLevel;
+                document.getElementById('expBar').style.width = `${(gameState.level.exp / gameState.level.nextLevel) * 100}%`;
                 if (gameState.upgrades.autoClicker.active) {
                     const autoClickValue = document.getElementById('autoClickValue');
                     autoClickValue.style.display = 'inline-block';
@@ -814,6 +874,21 @@
             // Bestenliste alle 30 Sekunden aktualisieren
             setInterval(updateLeaderboard, 30000);
             updateLeaderboard();
+
+            function calculateExpForNextLevel(level) {
+                return Math.floor(100 * Math.pow(1.2, level));
+            }
+
+            function addExp(amount) {
+                gameState.level.exp += amount;
+                while (gameState.level.exp >= gameState.level.nextLevel) {
+                    gameState.level.exp -= gameState.level.nextLevel;
+                    gameState.level.current++;
+                    gameState.level.nextLevel = calculateExpForNextLevel(gameState.level.current);
+                    showToast(`🎖 Level Up! Du bist jetzt Level ${gameState.level.current}!`);
+                }
+                updateDisplay();
+            }
         });
     </script>
 </body>
