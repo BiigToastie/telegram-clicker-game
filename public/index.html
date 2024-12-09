@@ -184,11 +184,8 @@
 
         .cookie-container {
             position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
-            width: 100%;
+            width: 200px;
+            margin: 0 auto;
         }
 
         .click-value {
@@ -251,9 +248,8 @@
         /* Neue Styles für den Auto-Clicker Status */
         .auto-clicker-status {
             position: absolute;
-            left: -50px;
-            top: 50%;
-            transform: translateY(-50%);
+            left: -60px;
+            top: calc(50% - 20px);
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -264,7 +260,8 @@
             cursor: pointer;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
-            display: none;
+            opacity: 0;
+            visibility: hidden;
         }
 
         .auto-clicker-status.active {
@@ -453,23 +450,31 @@
                     const response = await fetch(`/api/user/${telegramId}`);
                     const userData = await response.json();
                     
-                    gameState.coins = userData.coins || 0;
-                    gameState.multiplier = userData.multiplier || 0.1;
-                    gameState.autoClicker = userData.autoClicker || {
-                        active: false,
-                        enabled: false,
-                        multiplier: 0.1,
-                        cost: 100,
-                        upgradeCost: 200,
-                        costIncrease: 1.5
-                    };
-                    gameState.upgrades = userData.upgrades || {
-                        multiplier: {
-                            cost: 1,
-                            increment: 0.1,
-                            costIncrease: 1.2
+                    gameState = {
+                        coins: Number(userData.coins || 0),
+                        multiplier: Number(userData.multiplier || 0.1),
+                        autoClicker: {
+                            active: Boolean(userData.autoClicker?.active || false),
+                            enabled: Boolean(userData.autoClicker?.enabled || false),
+                            multiplier: Number(userData.autoClicker?.multiplier || 0.1),
+                            cost: Number(userData.autoClicker?.cost || 100),
+                            upgradeCost: Number(userData.autoClicker?.upgradeCost || 200),
+                            costIncrease: Number(userData.autoClicker?.costIncrease || 1.5)
+                        },
+                        upgrades: {
+                            multiplier: {
+                                cost: Number(userData.upgrades?.multiplier?.cost || 1),
+                                increment: Number(userData.upgrades?.multiplier?.increment || 0.1),
+                                costIncrease: Number(userData.upgrades?.multiplier?.costIncrease || 1.2)
+                            }
                         }
                     };
+
+                    if (gameState.autoClicker.active) {
+                        const status = document.getElementById('autoClickerStatus');
+                        status.style.visibility = 'visible';
+                        status.style.opacity = '1';
+                    }
                     
                     updateDisplay();
                 } catch (error) {
@@ -552,7 +557,9 @@
                     updateDisplay();
                     document.getElementById('autoClickerItem').style.display = 'none';
                     document.getElementById('autoClickerUpgrade').style.display = 'flex';
-                    document.getElementById('autoClickerStatus').style.display = 'flex';
+                    const status = document.getElementById('autoClickerStatus');
+                    status.style.visibility = 'visible';
+                    status.style.opacity = '1';
                     tg.showPopup({
                         title: '🤖 Auto-Clicker aktiviert!',
                         message: 'Dein Auto-Clicker ist jetzt aktiv und klickt jede Sekunde!'
