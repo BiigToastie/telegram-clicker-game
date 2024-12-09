@@ -493,13 +493,8 @@
                     splitter.style.setProperty('--ty', `${ty}px`);
                     splitter.style.setProperty('--r', `${rotation}deg`);
                     
-                    // Position horizontal zentrieren
-                    const container = document.querySelector('.cookie-container');
-                    const containerRect = container.getBoundingClientRect();
-                    const offsetX = containerRect.width / 2;
-                    const offsetY = (valueRect.top - cookieRect.top) / 2;
-                    splitter.style.left = `${offsetX}px`;
-                    splitter.style.top = `${offsetY}px`;
+                    splitter.style.left = `${x}px`;
+                    splitter.style.top = `${y}px`;
                     
                     document.querySelector('.cookie-container').appendChild(splitter);
                     
@@ -572,6 +567,13 @@
             // Lade Daten beim Start
             loadUserData();
 
+            const coinsDisplay = document.getElementById('coins');
+            const multiplierDisplay = document.getElementById('multiplier');
+            const clickValueDisplay = document.getElementById('clickValue');
+            const clickButton = document.getElementById('clickButton');
+            const multiplierCost = document.getElementById('multiplierCost');
+
+            // Cookie-Button Click Handler
             clickButton.addEventListener('click', (e) => {
                 gameState.coins += gameState.multiplier;
                 updateDisplay();
@@ -584,8 +586,10 @@
                     clickButton.style.transform = 'scale(1)';
                 }, 100);
                 
-                // Splitter-Animation mit Offset
-                createSplitters();
+                // Splitter-Animation
+                const container = document.querySelector('.cookie-container');
+                const containerRect = container.getBoundingClientRect();
+                createSplitters(containerRect.width / 2, containerRect.height / 2);
             });
 
             function showToast(message, type = 'success') {
