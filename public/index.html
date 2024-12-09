@@ -198,6 +198,18 @@
             padding: 5px 15px;
             border-radius: 20px;
             animation: pulse 2s infinite;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .auto-click-value {
+            font-size: 1em;
+            color: #2ecc71;
+            background: rgba(46, 204, 113, 0.1);
+            padding: 3px 10px;
+            border-radius: 15px;
+            display: none;
         }
 
         @keyframes pulse {
@@ -289,7 +301,12 @@
     <div class="button-container">
         <div class="cookie-container">
             <button class="cookie-button" id="clickButton"></button>
-            <div class="click-value">+<span id="clickValue">1.0</span> Coins pro Klick</div>
+            <div class="click-value">
+                +<span id="clickValue">1.0</span> Coins pro Klick
+                <span class="auto-click-value" id="autoClickValue">
+                    🤖 +<span id="autoClickMultiplier">0.1</span>/s
+                </span>
+            </div>
         </div>
         <button class="button shop-button" id="shopButton">
             <span>🛍 Shop öffnen</span>
@@ -344,7 +361,7 @@
                     multiplier: 0.1,
                     cost: 100,
                     upgradeCost: 200,
-                    costIncrease: 2.0
+                    costIncrease: 1.5
                 },
                 upgrades: {
                     multiplier: {
@@ -438,7 +455,7 @@
                         multiplier: 0.1,
                         cost: 100,
                         upgradeCost: 200,
-                        costIncrease: 2.0
+                        costIncrease: 1.5
                     };
                     gameState.upgrades = userData.upgrades || {
                         multiplier: {
@@ -563,6 +580,9 @@
                 clickValueDisplay.textContent = gameState.multiplier.toFixed(2);
                 multiplierCost.textContent = `${gameState.upgrades.multiplier.cost} 🪙`;
                 if (gameState.autoClicker.active) {
+                    document.getElementById('autoClickValue').style.display = 'inline-block';
+                    document.getElementById('autoClickMultiplier').textContent = 
+                        gameState.autoClicker.multiplier.toFixed(2);
                     document.getElementById('autoClickerDesc').textContent = 
                         `Klickt automatisch jede Sekunde! (${gameState.autoClicker.multiplier.toFixed(2)} Coins/Klick)`;
                     document.getElementById('autoClickerUpgradeCost').textContent = 
