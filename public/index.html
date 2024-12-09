@@ -276,7 +276,7 @@
             cursor: pointer;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
-            opacity: 0.5;
+            opacity: 0.3;
             z-index: 100;
         }
 
@@ -287,13 +287,14 @@
             opacity: 1;
         }
 
+        .auto-clicker-status:not(.locked):hover {
+            opacity: 0.8;
+            transform: translateY(-50%) scale(1.1);
+        }
+
         .auto-clicker-status.locked {
             cursor: not-allowed;
             opacity: 0.3;
-        }
-
-        .auto-clicker-status:hover {
-            transform: translateY(-50%) scale(1.1);
         }
 
         .auto-clicker-status .icon {
@@ -604,7 +605,7 @@
 
     <div class="leaderboard-container">
         <div class="leaderboard-header">
-            <h2>�� Bestenliste</h2>
+            <h2> Bestenliste</h2>
             <span class="your-rank">Dein Rang: <span id="yourRank">-</span></span>
         </div>
         <div class="leaderboard-list" id="leaderboardList">
@@ -1014,6 +1015,36 @@
                     showToast(`🎖 Level Up! Du bist jetzt Level ${gameState.level.current}!\nNächstes Level: ${gameState.level.nextLevel} EXP`);
                 }
                 updateDisplay();
+            }
+
+            // Auto-Clicker Toggle
+            document.getElementById('autoClickerStatus').addEventListener('click', () => {
+                if (gameState.upgrades.autoClicker.active) {
+                    gameState.upgrades.autoClicker.enabled = !gameState.upgrades.autoClicker.enabled;
+                    const status = document.getElementById('autoClickerStatus');
+                    
+                    if (gameState.upgrades.autoClicker.enabled) {
+                        status.classList.add('active');
+                        startAutoClicker();
+                        showToast('🤖 Auto-Clicker aktiviert!');
+                    } else {
+                        status.classList.remove('active');
+                        stopAutoClicker();
+                        showToast('🤖 Auto-Clicker deaktiviert!');
+                    }
+                    saveUserData();
+                } else {
+                    showToast('❌ Kaufe zuerst den Auto-Clicker!', 'error');
+                }
+            });
+
+            // Update initial status
+            if (gameState.upgrades.autoClicker.active) {
+                const status = document.getElementById('autoClickerStatus');
+                status.classList.remove('locked');
+                if (gameState.upgrades.autoClicker.enabled) {
+                    status.classList.add('active');
+                }
             }
         });
     </script>
