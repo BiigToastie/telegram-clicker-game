@@ -401,21 +401,21 @@
         <div class="upgrade-item">
             <div class="upgrade-info">
                 <div class="upgrade-title">💰 Coin Multiplier</div>
-                <div class="upgrade-description">Erhöht den Coin-Gewinn pro Klick um 0.5 (Aktuell: ${gameState.multiplier.toFixed(2)})</div>
+                <div class="upgrade-description">Erhöht den Coin-Gewinn pro Klick um 0.1</div>
             </div>
             <div class="upgrade-cost" id="multiplierCost">5 🪙</div>
         </div>
-        <div class="upgrade-item" id="autoClickerItem">
+        <div class="upgrade-item" id="autoClickerBuy">
             <div class="upgrade-info">
                 <div class="upgrade-title">🤖 Auto-Clicker</div>
-                <div class="upgrade-description" id="autoClickerDesc">Klickt automatisch jede Sekunde für 0.1 Coins</div>
+                <div class="upgrade-description">Klickt automatisch jede Sekunde für 0.1 Coins</div>
             </div>
-            <div class="upgrade-cost" id="autoClickerCost">100 🪙</div>
+            <div class="upgrade-cost">100 🪙</div>
         </div>
         <div class="upgrade-item" id="autoClickerUpgrade" style="display: none;">
             <div class="upgrade-info">
                 <div class="upgrade-title">⚡ Auto-Clicker Upgrade</div>
-                <div class="upgrade-description">Erhöht den Auto-Clicker um 0.1 Coins pro Sekunde (Aktuell: ${gameState.autoClicker.multiplier.toFixed(2)})</div>
+                <div class="upgrade-description">Erhöht den Auto-Clicker um 0.1 Coins/Sekunde (Aktuell: <span id="autoClickerValue">0.1</span>)</div>
             </div>
             <div class="upgrade-cost" id="autoClickerUpgradeCost">200 🪙</div>
         </div>
@@ -440,25 +440,34 @@
             let gameState = {
                 coins: 0,
                 multiplier: 0.1,
-                autoClicker: {
-                    active: false,
-                    enabled: false,
-                    multiplier: 0.1,
-                    cost: 100,
-                    upgradeCost: 200,
-                    costIncrease: 1.5
-                },
                 upgrades: {
                     multiplier: {
                         cost: 5,
                         increment: 0.1,
                         costIncrease: 1.3
+                    },
+                    autoClicker: {
+                        active: false,
+                        cost: 100,
+                        value: 0.1,
+                        upgradeCost: 200,
+                        costIncrease: 1.5
                     }
                 }
             };
 
-            // Auto-Clicker Timer
             let autoClickerInterval;
+
+            function startAutoClicker() {
+                if (gameState.upgrades.autoClicker.active && !autoClickerInterval) {
+                    autoClickerInterval = setInterval(() => {
+                        gameState.coins += gameState.upgrades.autoClicker.value;
+                        updateDisplay();
+                        saveUserData();
+                        createSplitters();
+                    }, 1000);
+                }
+            }
 
             function simulateClick() {
                 clickButton.style.transform = 'scale(0.95)';
@@ -498,83 +507,6 @@
                 }
             }
 
-            function startAutoClicker() {
-                if (gameState.autoClicker.active && !autoClickerInterval) {
-                    autoClickerInterval = setInterval(() => {
-                        gameState.coins += gameState.autoClicker.multiplier;
-                        updateDisplay();
-                        saveUserData();
-                        
-                        // Cookie-Animation
-                        clickButton.style.transform = 'scale(0.95)';
-                        setTimeout(() => {
-                            clickButton.style.transform = 'scale(1)';
-                        }, 100);
-                        
-                        // Zentrierte Splitter-Animation für Auto-Clicker
-                        const centerX = clickButton.offsetWidth / 2;
-                        const centerY = clickButton.offsetHeight / 2;
-                        createSplitters(centerX, centerY);
-                    }, 1000);
-                    // Status-Button aktualisieren
-                    const status = document.getElementById('autoClickerStatus');
-                    status.classList.add('active');
-                }
-            }
-
-            function stopAutoClicker() {
-                if (autoClickInterval) {
-                    clearInterval(autoClickerInterval);
-                    autoClickerInterval = null;
-                    // Status-Button aktualisieren
-                    const status = document.getElementById('autoClickerStatus');
-                    status.classList.remove('active');
-                    gameState.autoClicker.enabled = false;
-                    saveUserData();
-                }
-            }
-
-            // Auto-Clicker Status Toggle
-            document.getElementById('autoClickerStatus').addEventListener('click', () => {
-                if (!gameState.autoClicker.active) {
-                    showToast('❌ Du musst erst den Auto-Clicker freischalten!', 'error');
-                    return;
-                }
-
-                if (gameState.autoClicker.active) {
-                    gameState.autoClicker.enabled = !gameState.autoClicker.enabled;
-                    if (gameState.autoClicker.enabled) {
-                        startAutoClicker();
-                        showToast('🤖 Auto-Clicker aktiviert!');
-                    } else {
-                        stopAutoClicker();
-                        showToast('🤖 Auto-Clicker deaktiviert!');
-                    }
-                    saveUserData();
-                }
-            });
-
-            // Beim Laden prüfen und Auto-Clicker Status setzen
-            const status = document.getElementById('autoClickerStatus');
-            if (!gameState.autoClicker.active) {
-                status.classList.add('locked');
-            }
-            if (gameState.autoClicker.active) {
-                status.classList.remove('locked');
-                status.style.display = 'flex';
-                if (gameState.autoClicker.enabled) {
-                    startAutoClicker();
-                    status.classList.add('active');
-                }
-            }
-
-            const coinsDisplay = document.getElementById('coins');
-            const multiplierDisplay = document.getElementById('multiplier');
-            const clickValueDisplay = document.getElementById('clickValue');
-            const clickButton = document.getElementById('clickButton');
-            const upgradeContainer = document.getElementById('upgradeContainer');
-            const multiplierCost = document.getElementById('multiplierCost');
-
             // Lade Spielerdaten
             async function loadUserData() {
                 try {
@@ -587,33 +519,26 @@
                     gameState = {
                         coins: Number(userData.coins || 0),
                         multiplier: Number(userData.multiplier || 0.1),
-                        autoClicker: {
-                            active: userData.autoClicker?.active === true,
-                            enabled: userData.autoClicker?.enabled === true,
-                            multiplier: Number(userData.autoClicker?.multiplier || 0.1),
-                            cost: userData.autoClicker?.cost !== undefined ? Number(userData.autoClicker.cost) : 100,
-                            upgradeCost: userData.autoClicker?.upgradeCost !== undefined ? Number(userData.autoClicker.upgradeCost) : 200,
-                            costIncrease: Number(userData.autoClicker?.costIncrease || 1.5)
-                        },
                         upgrades: {
                             multiplier: {
                                 cost: Number(userData.upgrades?.multiplier?.cost || 5),
                                 increment: Number(userData.upgrades?.multiplier?.increment || 0.1),
                                 costIncrease: Number(userData.upgrades?.multiplier?.costIncrease || 1.3)
+                            },
+                            autoClicker: {
+                                active: Boolean(userData.upgrades?.autoClicker?.active || false),
+                                cost: Number(userData.upgrades?.autoClicker?.cost || 100),
+                                value: Number(userData.upgrades?.autoClicker?.value || 0.1),
+                                upgradeCost: Number(userData.upgrades?.autoClicker?.upgradeCost || 200),
+                                costIncrease: Number(userData.upgrades?.autoClicker?.costIncrease || 1.5)
                             }
                         }
                     };
 
-                    if (gameState.autoClicker.active) {
-                        document.getElementById('autoClickerItem').style.display = 'none';
+                    if (gameState.upgrades.autoClicker.active) {
+                        document.getElementById('autoClickerBuy').style.display = 'none';
                         document.getElementById('autoClickerUpgrade').style.display = 'flex';
-                        const status = document.getElementById('autoClickerStatus');
-                        status.style.display = 'flex';
-                        status.classList.remove('locked');
-                        if (gameState.autoClicker.enabled) {
-                            startAutoClicker();
-                            status.classList.add('active');
-                        }
+                        startAutoClicker();
                     }
                     
                     updateDisplay();
@@ -636,14 +561,6 @@
                         body: JSON.stringify({
                             coins: gameState.coins,
                             multiplier: gameState.multiplier,
-                            autoClicker: {
-                                active: gameState.autoClicker.active,
-                                enabled: gameState.autoClicker.enabled,
-                                multiplier: gameState.autoClicker.multiplier,
-                                cost: gameState.autoClicker.cost,
-                                upgradeCost: gameState.autoClicker.upgradeCost,
-                                costIncrease: gameState.autoClicker.costIncrease
-                            },
                             upgrades: gameState.upgrades
                         })
                     });
@@ -696,34 +613,31 @@
                 }
             });
 
-            document.getElementById('autoClickerItem').addEventListener('click', () => {
-                if (!gameState.autoClicker.active && gameState.coins >= gameState.autoClicker.cost) {
-                    gameState.coins -= gameState.autoClicker.cost;
-                    gameState.autoClicker.active = true;
-                    gameState.autoClicker.enabled = true;
+            document.getElementById('autoClickerBuy').addEventListener('click', () => {
+                if (!gameState.upgrades.autoClicker.active && gameState.coins >= gameState.upgrades.autoClicker.cost) {
+                    gameState.coins -= gameState.upgrades.autoClicker.cost;
+                    gameState.upgrades.autoClicker.active = true;
                     startAutoClicker();
                     updateDisplay();
-                    document.getElementById('autoClickerItem').style.display = 'none';
+                    document.getElementById('autoClickerBuy').style.display = 'none';
                     document.getElementById('autoClickerUpgrade').style.display = 'flex';
-                    const status = document.getElementById('autoClickerStatus');
-                    status.style.display = 'flex';
-                    status.classList.remove('locked');
-                    status.classList.add('active');
                     showToast('🤖 Auto-Clicker aktiviert!');
                     saveUserData();
+                } else {
+                    showToast(`❌ Du brauchst ${gameState.upgrades.autoClicker.cost} Coins!`, 'error');
                 }
             });
 
             document.getElementById('autoClickerUpgrade').addEventListener('click', () => {
-                if (gameState.coins >= gameState.autoClicker.upgradeCost) {
-                    gameState.coins -= gameState.autoClicker.upgradeCost;
-                    gameState.autoClicker.multiplier += 0.1;
-                    gameState.autoClicker.upgradeCost = Math.ceil(gameState.autoClicker.upgradeCost * gameState.autoClicker.costIncrease);
+                if (gameState.coins >= gameState.upgrades.autoClicker.upgradeCost) {
+                    gameState.coins -= gameState.upgrades.autoClicker.upgradeCost;
+                    gameState.upgrades.autoClicker.value += 0.1;
+                    gameState.upgrades.autoClicker.upgradeCost = Math.ceil(gameState.upgrades.autoClicker.upgradeCost * gameState.upgrades.autoClicker.costIncrease);
                     updateDisplay();
-                    showToast(`⚡ Auto-Clicker: ${gameState.autoClicker.multiplier.toFixed(2)}/s | Nächstes: ${gameState.autoClicker.upgradeCost} Coins`);
+                    showToast(`⚡ Auto-Clicker: ${gameState.upgrades.autoClicker.value.toFixed(2)}/s`);
                     saveUserData();
                 } else {
-                    showToast(`❌ Du brauchst ${gameState.autoClicker.upgradeCost} Coins!`, 'error');
+                    showToast(`❌ Du brauchst ${gameState.upgrades.autoClicker.upgradeCost} Coins!`, 'error');
                 }
             });
 
@@ -732,18 +646,11 @@
                 multiplierDisplay.textContent = gameState.multiplier.toFixed(2);
                 clickValueDisplay.textContent = gameState.multiplier.toFixed(2);
                 multiplierCost.textContent = `${Math.ceil(gameState.upgrades.multiplier.cost)} 🪙`;
-                document.querySelector('.upgrade-item .upgrade-description').textContent = 
-                    `Erhöht den Coin-Gewinn pro Klick um 0.5 (Aktuell: ${gameState.multiplier.toFixed(2)})`;
-                if (gameState.autoClicker.active) {
-                    document.getElementById('autoClickValue').style.display = 'inline-block';
-                    document.getElementById('autoClickMultiplier').textContent = 
-                        gameState.autoClicker.multiplier.toFixed(2);
-                    document.getElementById('autoClickerDesc').textContent = 
-                        `Klickt automatisch jede Sekunde für ${gameState.autoClicker.multiplier.toFixed(2)} Coins`;
+                if (gameState.upgrades.autoClicker.active) {
                     document.getElementById('autoClickerUpgradeCost').textContent = 
-                        `${gameState.autoClicker.upgradeCost} 🪙`;
-                    document.querySelector('#autoClickerUpgrade .upgrade-description').textContent = 
-                        `Erhöht den Auto-Clicker um 0.1 Coins pro Sekunde (Aktuell: ${gameState.autoClicker.multiplier.toFixed(2)})`;
+                        `${Math.ceil(gameState.upgrades.autoClicker.upgradeCost)} 🪙`;
+                    document.getElementById('autoClickerValue').textContent = 
+                        `${gameState.upgrades.autoClicker.value.toFixed(2)}`;
                 }
             }
 
