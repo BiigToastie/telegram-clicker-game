@@ -11,14 +11,54 @@ const USERS_FILE = path.join(__dirname, '../data/users.json');
 async function loadUsers() {
     try {
         const data = await fs.readFile(USERS_FILE, 'utf8');
-        return JSON.parse(data);
+        // Sicheres Parsen mit Fallback
+        const users = JSON.parse(data);
+        if (!users || typeof users !== 'object') {
+            console.error('Ungültiges Datenformat, stelle Backup wieder her');
+            return {};
+        }
+        return users;
     } catch (error) {
-        return {};
+        if (error.code === 'ENOENT') {
+            // Datei existiert nicht - erstelle sie
+            await fs.writeFile(USERS_FILE, '{}');
+            return {};
+        }
+        console.error('Fehler beim Laden der Benutzerdaten:', error);
+        // Versuche Backup zu laden
+        try {
+            const backup = await fs.readFile(USERS_FILE + '.backup', 'utf8');
+            return JSON.parse(backup) || {};
+        } catch (backupError) {
+            console.error('Backup konnte nicht geladen werden:', backupError);
+            return {};
+        }
     }
 }
 
 async function saveUsers(users) {
-    await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
+    try {
+        // Erstelle Backup der alten Daten
+        try {
+            const oldData = await fs.readFile(USERS_FILE, 'utf8');
+            await fs.writeFile(USERS_FILE + '.backup', oldData);
+        } catch (backupError) {
+            console.error('Backup konnte nicht erstellt werden:', backupError);
+        }
+
+        // Validiere Daten vor dem Speichern
+        if (!users || typeof users !== 'object') {
+            throw new Error('Ungültige Daten');
+        }
+
+        // Atomares Speichern
+        const tempFile = USERS_FILE + '.temp';
+        await fs.writeFile(tempFile, JSON.stringify(users, null, 2));
+        await fs.rename(tempFile, USERS_FILE);
+    } catch (error) {
+        console.error('Fehler beim Speichern:', error);
+        throw error;
+    }
 }
 
 let bot;
@@ -57,9 +97,11 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.get('/api/user/:telegramId', async (req, res) => {
     try {
         const users = await loadUsers();
+        // Existierende Daten NIEMALS überschreiben
         let user = users[req.params.telegramId];
         
         if (!user) {
+            // Nur für neue Spieler Standardwerte setzen
             user = {
                 coins: 0,
                 multiplier: 0.1,
@@ -91,6 +133,7 @@ app.get('/api/user/:telegramId', async (req, res) => {
         }
         res.json(user);
     } catch (error) {
+        console.error('Fehler beim Laden/Speichern:', error);
         res.status(500).json({ error: 'Datenbankfehler' });
     }
 });
