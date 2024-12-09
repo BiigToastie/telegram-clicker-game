@@ -390,7 +390,7 @@
             <button class="cookie-button" id="clickButton"></button>
             <div class="click-value">
                 +<span id="clickValue">1.0</span> Coins pro Klick
-                <span class="auto-click-value" id="autoClickValue">
+                <span class="auto-click-value" id="autoClickValue" style="display: none;">
                     🤖 +<span id="autoClickMultiplier">0.1</span>/s
                 </span>
             </div>
@@ -675,6 +675,10 @@
                 clickValueDisplay.textContent = gameState.multiplier.toFixed(2);
                 multiplierCost.textContent = `${Math.ceil(gameState.upgrades.multiplier.cost)} 🪙`;
                 if (gameState.upgrades.autoClicker.active) {
+                    const autoClickValue = document.getElementById('autoClickValue');
+                    autoClickValue.style.display = 'inline-block';
+                    document.getElementById('autoClickMultiplier').textContent = 
+                        gameState.upgrades.autoClicker.value.toFixed(2);
                     document.getElementById('autoClickerUpgradeCost').textContent = 
                         `${Math.ceil(gameState.upgrades.autoClicker.upgradeCost)} 🪙`;
                     document.getElementById('autoClickerValue').textContent = 
