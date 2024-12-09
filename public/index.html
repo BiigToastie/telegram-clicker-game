@@ -404,21 +404,21 @@
         <div class="upgrade-item">
             <div class="upgrade-info">
                 <div class="upgrade-title">💰 Coin Multiplier</div>
-                <div class="upgrade-description">Erhöht den Coin-Gewinn pro Klick um 0.1</div>
+                <div class="upgrade-description">Erhöht den Coin-Gewinn pro Klick um 0.1 (Aktuell: ${gameState.multiplier.toFixed(2)})</div>
             </div>
             <div class="upgrade-cost" id="multiplierCost">5 🪙</div>
         </div>
         <div class="upgrade-item" id="autoClickerItem">
             <div class="upgrade-info">
                 <div class="upgrade-title">🤖 Auto-Clicker</div>
-                <div class="upgrade-description" id="autoClickerDesc">Klickt automatisch jede Sekunde! (0.1 Coins/Klick)</div>
+                <div class="upgrade-description" id="autoClickerDesc">Klickt automatisch jede Sekunde für 0.1 Coins</div>
             </div>
             <div class="upgrade-cost" id="autoClickerCost">100 🪙</div>
         </div>
         <div class="upgrade-item" id="autoClickerUpgrade" style="display: none;">
             <div class="upgrade-info">
                 <div class="upgrade-title">⚡ Auto-Clicker Upgrade</div>
-                <div class="upgrade-description">Erhöht den Auto-Clicker um 0.1 Coins/Klick</div>
+                <div class="upgrade-description">Erhöht den Auto-Clicker um 0.1 Coins pro Sekunde (Aktuell: ${gameState.autoClicker.multiplier.toFixed(2)})</div>
             </div>
             <div class="upgrade-cost" id="autoClickerUpgradeCost">200 🪙</div>
         </div>
@@ -523,7 +523,7 @@
             }
 
             function stopAutoClicker() {
-                if (autoClickerInterval) {
+                if (autoClickInterval) {
                     clearInterval(autoClickerInterval);
                     autoClickerInterval = null;
                     // Status-Button aktualisieren
@@ -720,14 +720,18 @@
                 multiplierDisplay.textContent = gameState.multiplier.toFixed(2);
                 clickValueDisplay.textContent = gameState.multiplier.toFixed(2);
                 multiplierCost.textContent = `${Math.ceil(gameState.upgrades.multiplier.cost)} 🪙`;
+                document.querySelector('.upgrade-item .upgrade-description').textContent = 
+                    `Erhöht den Coin-Gewinn pro Klick um 0.1 (Aktuell: ${gameState.multiplier.toFixed(2)})`;
                 if (gameState.autoClicker.active) {
                     document.getElementById('autoClickValue').style.display = 'inline-block';
                     document.getElementById('autoClickMultiplier').textContent = 
                         gameState.autoClicker.multiplier.toFixed(2);
                     document.getElementById('autoClickerDesc').textContent = 
-                        `Klickt automatisch jede Sekunde! (${gameState.autoClicker.multiplier.toFixed(2)} Coins/Klick)`;
+                        `Klickt automatisch jede Sekunde für ${gameState.autoClicker.multiplier.toFixed(2)} Coins`;
                     document.getElementById('autoClickerUpgradeCost').textContent = 
                         `${gameState.autoClicker.upgradeCost} 🪙`;
+                    document.querySelector('#autoClickerUpgrade .upgrade-description').textContent = 
+                        `Erhöht den Auto-Clicker um 0.1 Coins pro Sekunde (Aktuell: ${gameState.autoClicker.multiplier.toFixed(2)})`;
                 }
             }
 
