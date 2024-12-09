@@ -184,8 +184,11 @@
 
         .cookie-container {
             position: relative;
-            width: 200px;
-            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            width: 100%;
         }
 
         .click-value {
@@ -260,8 +263,7 @@
             cursor: pointer;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
-            opacity: 0;
-            visibility: hidden;
+            display: none;
         }
 
         .auto-clicker-status.active {
@@ -557,9 +559,7 @@
                     updateDisplay();
                     document.getElementById('autoClickerItem').style.display = 'none';
                     document.getElementById('autoClickerUpgrade').style.display = 'flex';
-                    const status = document.getElementById('autoClickerStatus');
-                    status.style.visibility = 'visible';
-                    status.style.opacity = '1';
+                    document.getElementById('autoClickerStatus').style.display = 'flex';
                     tg.showPopup({
                         title: '🤖 Auto-Clicker aktiviert!',
                         message: 'Dein Auto-Clicker ist jetzt aktiv und klickt jede Sekunde!'
