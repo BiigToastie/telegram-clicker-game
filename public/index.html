@@ -315,7 +315,7 @@
             background: radial-gradient(circle at center, #b17a45 0%, #8b5e2e 100%);
             border-radius: 50%;
             pointer-events: none;
-            animation: splitterAnimation 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation: splitterAnimation 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) var(--delay, 0ms) forwards;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             transform-origin: center;
         }
@@ -327,7 +327,7 @@
             }
             50% {
                 opacity: 0.8;
-                transform: translate(calc(-50% + var(--tx) * 0.5), calc(-50% + var(--ty) * 0.5)) rotate(var(--r) * 0.5deg) scale(0.8);
+                transform: translate(calc(-50% + var(--tx) * 0.6), calc(-50% + var(--ty) * 0.6)) rotate(var(--r) * 0.6deg) scale(0.9);
             }
             100% {
                 transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--r)deg) scale(0.5);
@@ -471,30 +471,37 @@
             }
 
             function createSplitters(x, y) {
-                const splitterCount = 8;
-                for (let i = 0; i < splitterCount; i++) {
-                    const splitter = document.createElement('div');
-                    splitter.className = 'cookie-splitter';
-                    
-                    // Zufällige Bewegung für jeden Splitter
-                    const angle = (Math.PI * 2 * i) / splitterCount + (Math.random() * 0.5 - 0.25);
-                    const distance = 30 + Math.random() * 30;
-                    const tx = Math.cos(angle) * distance;
-                    const ty = Math.sin(angle) * distance;
-                    const rotation = Math.random() * 720 - 360; // -360 bis +360 Grad
-
-                    splitter.style.setProperty('--tx', `${tx}px`);
-                    splitter.style.setProperty('--ty', `${ty}px`);
-                    splitter.style.setProperty('--r', `${rotation}deg`);
-                    
-                    // Position setzen
-                    splitter.style.left = `${x}px`;
-                    splitter.style.top = `${y}px`;
-                    
-                    document.querySelector('.cookie-container').appendChild(splitter);
-                    
-                    // Splitter nach Animation entfernen
-                    setTimeout(() => splitter.remove(), 800);
+                const splitterCount = 12;
+                const layers = 3;
+                
+                for (let layer = 0; layer < layers; layer++) {
+                    for (let i = 0; i < splitterCount; i++) {
+                        const splitter = document.createElement('div');
+                        splitter.className = 'cookie-splitter';
+                        
+                        const angle = (Math.PI * 2 * i) / splitterCount + (Math.random() * 0.5 - 0.25);
+                        const distance = (20 + Math.random() * 40) * (layer + 1);
+                        const tx = Math.cos(angle) * distance;
+                        const ty = Math.sin(angle) * distance;
+                        const rotation = Math.random() * 1080 - 540;
+                        const delay = layer * 50;
+                        
+                        const size = 4 + Math.random() * 4;
+                        splitter.style.width = `${size}px`;
+                        splitter.style.height = `${size}px`;
+                        
+                        splitter.style.setProperty('--tx', `${tx}px`);
+                        splitter.style.setProperty('--ty', `${ty}px`);
+                        splitter.style.setProperty('--r', `${rotation}deg`);
+                        splitter.style.setProperty('--delay', `${delay}ms`);
+                        
+                        splitter.style.left = `${x}px`;
+                        splitter.style.top = `${y}px`;
+                        
+                        document.querySelector('.cookie-container').appendChild(splitter);
+                        
+                        setTimeout(() => splitter.remove(), 1000 + delay);
+                    }
                 }
             }
 
