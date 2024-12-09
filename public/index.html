@@ -434,9 +434,22 @@
             flex: 1;
         }
 
+        .leaderboard-stats {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .leaderboard-level {
+            font-size: 0.9em;
+            color: #2ecc71;
+        }
+
         .leaderboard-coins {
             font-weight: bold;
             color: #2ea6ff;
+            font-size: 0.9em;
         }
 
         .leaderboard-you {
@@ -864,7 +877,10 @@
                         item.innerHTML = `
                             <div class="leaderboard-rank${rank <= 3 ? ` rank-${rank}` : ''}">${rank}</div>
                             <div class="leaderboard-name">${player.name}</div>
-                            <div class="leaderboard-coins">${Number(player.coins).toFixed(2)} 🪙</div>
+                            <div class="leaderboard-stats">
+                                <span class="leaderboard-level">Level ${player.level}</span>
+                                <span class="leaderboard-coins">${Number(player.coins).toFixed(2)} 🪙</span>
+                            </div>
                         `;
 
                         item.addEventListener('click', () => {
