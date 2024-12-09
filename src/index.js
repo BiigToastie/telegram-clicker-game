@@ -57,32 +57,38 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.get('/api/user/:telegramId', async (req, res) => {
     try {
         const users = await loadUsers();
-        const user = users[req.params.telegramId] || {
-            coins: 0,
-            multiplier: 0.1,
-            level: {
-                current: 0,
-                exp: 0,
-                nextLevel: 100
-            },
-            upgrades: {
-                multiplier: {
-                    cost: 5,
-                    increment: 0.1,
-                    costIncrease: 1.3
+        let user = users[req.params.telegramId];
+        
+        if (!user) {
+            user = {
+                coins: 0,
+                multiplier: 0.1,
+                name: '',
+                username: '',
+                level: {
+                    current: 0,
+                    exp: 0,
+                    nextLevel: 100
                 },
-                autoClicker: {
-                    active: false,
-                    cost: 100,
-                    value: 0.1,
-                    upgradeCost: 200,
-                    costIncrease: 1.5,
-                    lastUpdate: Date.now()
+                upgrades: {
+                    multiplier: {
+                        cost: 5,
+                        increment: 0.1,
+                        costIncrease: 1.3
+                    },
+                    autoClicker: {
+                        active: false,
+                        cost: 100,
+                        value: 0.1,
+                        upgradeCost: 200,
+                        costIncrease: 1.5,
+                        lastUpdate: Date.now()
+                    }
                 }
-            }
-        };
-        users[req.params.telegramId] = user;
-        await saveUsers(users);
+            };
+            users[req.params.telegramId] = user;
+            await saveUsers(users);
+        }
         res.json(user);
     } catch (error) {
         res.status(500).json({ error: 'Datenbankfehler' });
@@ -91,13 +97,15 @@ app.get('/api/user/:telegramId', async (req, res) => {
 
 app.post('/api/user/:telegramId/save', async (req, res) => {
     try {
-        const { coins, multiplier, level, upgrades } = req.body;
+        const { coins, multiplier, level, upgrades, name, username } = req.body;
         const users = await loadUsers();
         users[req.params.telegramId] = {
             coins,
             multiplier,
             level,
             upgrades,
+            name,
+            username,
             lastUpdated: new Date()
         };
         await saveUsers(users);
@@ -113,10 +121,11 @@ app.get('/api/leaderboard', async (req, res) => {
         const users = await loadUsers();
         const leaderboard = Object.entries(users).map(([id, user]) => ({
             id,
-            name: user.name || 'Spieler',
+            name: user.name || 'Unbekannter Spieler',
             level: user.level?.current || 0,
             exp: user.level?.exp || 0,
-            coins: user.coins || 0
+            coins: user.coins || 0,
+            username: user.username || ''
         }));
 
         // Sortiere nach Level (primär) und EXP (sekundär)
@@ -130,6 +139,16 @@ app.get('/api/leaderboard', async (req, res) => {
         res.json(leaderboard);
     } catch (error) {
         res.status(500).json({ error: 'Fehler beim Laden der Bestenliste' });
+    }
+});
+
+// Route zum manuellen Zurücksetzen der Daten (nur für Entwicklung)
+app.post('/api/reset', async (req, res) => {
+    try {
+        await saveUsers({});
+        res.json({ success: true, message: 'Alle Spielerdaten wurden zurückgesetzt' });
+    } catch (error) {
+        res.status(500).json({ error: 'Fehler beim Zurücksetzen' });
     }
 });
 

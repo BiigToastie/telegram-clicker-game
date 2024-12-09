@@ -399,6 +399,10 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+            margin-right: -10px;
         }
 
         .leaderboard-item {
@@ -487,6 +491,25 @@
             font-size: 0.8em;
             white-space: nowrap;
             opacity: 0.8;
+        }
+
+        /* Scrollbar Styling */
+        .leaderboard-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .leaderboard-list::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+
+        .leaderboard-list::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+        }
+
+        .leaderboard-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.3);
         }
     </style>
 </head>
@@ -727,6 +750,10 @@
                     const telegramId = tg.initDataUnsafe?.user?.id;
                     if (!telegramId) return;
 
+                    // Telegram Benutzerdaten
+                    const userData = tg.initDataUnsafe?.user;
+                    const userFullName = userData?.first_name + (userData?.last_name ? ' ' + userData?.last_name : '');
+
                     await fetch(`/api/user/${telegramId}/save`, {
                         method: 'POST',
                         headers: {
@@ -736,7 +763,9 @@
                             coins: gameState.coins,
                             multiplier: gameState.multiplier,
                             level: gameState.level,
-                            upgrades: gameState.upgrades
+                            upgrades: gameState.upgrades,
+                            name: userFullName || 'Unbekannter Spieler',
+                            username: userData?.username || ''
                         })
                     });
                 } catch (error) {
@@ -858,13 +887,14 @@
                 try {
                     const response = await fetch('/api/leaderboard');
                     const leaderboard = await response.json();
+                    const limitedLeaderboard = leaderboard.slice(0, 100);
                     const leaderboardList = document.getElementById('leaderboardList');
                     leaderboardList.innerHTML = '';
 
                     const currentUser = tg.initDataUnsafe?.user?.id;
                     let yourRank = '-';
 
-                    leaderboard.forEach((player, index) => {
+                    limitedLeaderboard.forEach((player, index) => {
                         const item = document.createElement('div');
                         item.className = `leaderboard-item${player.id === currentUser ? ' leaderboard-you' : ''}`;
                         
@@ -884,7 +914,9 @@
                         `;
 
                         item.addEventListener('click', () => {
-                            window.open(`https://t.me/${player.username}`);
+                            if (player.username) {
+                                window.open(`https://t.me/${player.username}`);
+                            }
                         });
 
                         leaderboardList.appendChild(item);
