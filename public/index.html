@@ -195,7 +195,7 @@
 
         .cookie-container {
             position: relative;
-            padding-left: 60px;
+            padding: 0 60px;
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -213,6 +213,10 @@
             display: flex;
             gap: 10px;
             align-items: center;
+            justify-content: center;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .auto-click-value {
@@ -262,7 +266,7 @@
         /* Auto-Clicker Status Button */
         .auto-clicker-status {
             position: absolute;
-            left: -50px;
+            left: 10px;
             top: 50%;
             transform: translateY(-50%);
             width: 40px;
@@ -277,6 +281,7 @@
             transition: all 0.3s ease;
             opacity: 0.5;
             z-index: 100;
+            visibility: visible !important;
         }
 
         .auto-clicker-status.active {
