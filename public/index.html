@@ -588,8 +588,8 @@
                         coins: Number(userData.coins || 0),
                         multiplier: Number(userData.multiplier || 0.1),
                         autoClicker: {
-                            active: Boolean(userData.autoClicker?.active || false),
-                            enabled: Boolean(userData.autoClicker?.enabled || false),
+                            active: userData.autoClicker?.active === true,
+                            enabled: userData.autoClicker?.enabled === true,
                             multiplier: Number(userData.autoClicker?.multiplier || 0.1),
                             cost: userData.autoClicker?.cost !== undefined ? Number(userData.autoClicker.cost) : 100,
                             upgradeCost: userData.autoClicker?.upgradeCost !== undefined ? Number(userData.autoClicker.upgradeCost) : 200,
@@ -609,6 +609,7 @@
                         document.getElementById('autoClickerUpgrade').style.display = 'flex';
                         const status = document.getElementById('autoClickerStatus');
                         status.style.display = 'flex';
+                        status.classList.remove('locked');
                         if (gameState.autoClicker.enabled) {
                             startAutoClicker();
                             status.classList.add('active');
@@ -705,6 +706,7 @@
                     document.getElementById('autoClickerItem').style.display = 'none';
                     document.getElementById('autoClickerUpgrade').style.display = 'flex';
                     const status = document.getElementById('autoClickerStatus');
+                    status.style.display = 'flex';
                     status.classList.remove('locked');
                     status.classList.add('active');
                     showToast('🤖 Auto-Clicker aktiviert!');
