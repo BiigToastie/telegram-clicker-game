@@ -107,6 +107,34 @@ app.post('/api/user/:telegramId/save', async (req, res) => {
     }
 });
 
+// API-Route für die Bestenliste
+app.get('/api/leaderboard', async (req, res) => {
+    try {
+        const users = await loadUsers();
+        const leaderboard = Object.entries(users).map(([id, user]) => ({
+            id,
+            name: `@${user.username || 'Anonymous'}`,
+            coins: user.coins,
+            level: user.level?.current || 0,
+            exp: user.level?.exp || 0,
+            nextLevel: user.level?.nextLevel || 100
+        }))
+        .sort((a, b) => {
+            // Primär nach Level sortieren
+            if (b.level !== a.level) {
+                return b.level - a.level;
+            }
+            // Sekundär nach Coins sortieren
+            return b.coins - a.coins;
+        })
+        .slice(0, 10); // Top 10 Spieler
+
+        res.json(leaderboard);
+    } catch (error) {
+        res.status(500).json({ error: 'Leaderboard Fehler' });
+    }
+});
+
 // Basis-Route für die Web-App
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
