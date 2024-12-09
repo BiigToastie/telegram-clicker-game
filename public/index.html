@@ -206,10 +206,55 @@
             const upgradeContainer = document.getElementById('upgradeContainer');
             const multiplierCost = document.getElementById('multiplierCost');
 
+            // Lade Spielerdaten
+            async function loadUserData() {
+                try {
+                    const telegramId = tg.initDataUnsafe?.user?.id;
+                    if (!telegramId) return;
+
+                    const response = await fetch(`/api/user/${telegramId}`);
+                    const userData = await response.json();
+                    
+                    gameState.coins = userData.coins;
+                    gameState.multiplier = userData.multiplier;
+                    gameState.upgrades = userData.upgrades;
+                    
+                    updateDisplay();
+                } catch (error) {
+                    console.error('Fehler beim Laden:', error);
+                }
+            }
+
+            // Speichere Spielerdaten
+            async function saveUserData() {
+                try {
+                    const telegramId = tg.initDataUnsafe?.user?.id;
+                    if (!telegramId) return;
+
+                    await fetch(`/api/user/${telegramId}/save`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            coins: gameState.coins,
+                            multiplier: gameState.multiplier,
+                            upgrades: gameState.upgrades
+                        })
+                    });
+                } catch (error) {
+                    console.error('Fehler beim Speichern:', error);
+                }
+            }
+
+            // Lade Daten beim Start
+            loadUserData();
+
             clickButton.addEventListener('click', () => {
                 gameState.coins += gameState.multiplier;
                 updateDisplay();
                 tg.HapticFeedback.impactOccurred('light');
+                saveUserData(); // Speichern nach Klick
                 
                 // Animation für den Click
                 clickButton.style.transform = 'scale(0.95)';
@@ -235,6 +280,7 @@
                         title: '🎉 Upgrade gekauft!',
                         message: `Neuer Multiplier: ${gameState.multiplier.toFixed(1)}\nNächstes Upgrade kostet: ${gameState.upgrades.multiplier.cost} Coins`
                     });
+                    saveUserData(); // Speichern nach Upgrade
                 } else {
                     tg.HapticFeedback.notificationOccurred('error');
                     tg.showPopup({
