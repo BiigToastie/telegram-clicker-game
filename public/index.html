@@ -591,8 +591,8 @@
                             active: Boolean(userData.autoClicker?.active || false),
                             enabled: Boolean(userData.autoClicker?.enabled || false),
                             multiplier: Number(userData.autoClicker?.multiplier || 0.1),
-                            cost: Number(userData.autoClicker?.cost || 100),
-                            upgradeCost: Number(userData.autoClicker?.upgradeCost || 200),
+                            cost: userData.autoClicker?.cost !== undefined ? Number(userData.autoClicker.cost) : 100,
+                            upgradeCost: userData.autoClicker?.upgradeCost !== undefined ? Number(userData.autoClicker.upgradeCost) : 200,
                             costIncrease: Number(userData.autoClicker?.costIncrease || 1.5)
                         },
                         upgrades: {
@@ -607,8 +607,11 @@
                     if (gameState.autoClicker.active) {
                         document.getElementById('autoClickerItem').style.display = 'none';
                         document.getElementById('autoClickerUpgrade').style.display = 'flex';
+                        const status = document.getElementById('autoClickerStatus');
+                        status.style.display = 'flex';
                         if (gameState.autoClicker.enabled) {
                             startAutoClicker();
+                            status.classList.add('active');
                         }
                     }
                     
@@ -632,7 +635,14 @@
                         body: JSON.stringify({
                             coins: gameState.coins,
                             multiplier: gameState.multiplier,
-                            autoClicker: gameState.autoClicker,
+                            autoClicker: {
+                                active: gameState.autoClicker.active,
+                                enabled: gameState.autoClicker.enabled,
+                                multiplier: gameState.autoClicker.multiplier,
+                                cost: gameState.autoClicker.cost,
+                                upgradeCost: gameState.autoClicker.upgradeCost,
+                                costIncrease: gameState.autoClicker.costIncrease
+                            },
                             upgrades: gameState.upgrades
                         })
                     });
