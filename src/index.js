@@ -38,11 +38,26 @@ async function saveUsers(users) {
             throw new Error('Ungültige Daten');
         }
 
-        // Direktes Speichern im Production-Mode
-        await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
+        // Erstelle Verzeichnis falls es nicht existiert
+        const dir = process.env.NODE_ENV === 'production' ? '/tmp' : path.dirname(USERS_FILE);
+        try {
+            await fs.mkdir(dir, { recursive: true });
+        } catch (mkdirError) {
+            console.error('Fehler beim Erstellen des Verzeichnisses:', mkdirError);
+        }
+
+        // Direktes Speichern ohne temporäre Datei
+        await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2), { flag: 'w' });
+
     } catch (error) {
         console.error('Fehler beim Speichern:', error);
-        throw error;
+        // Versuche es erneut mit direktem Schreiben
+        try {
+            await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
+        } catch (retryError) {
+            console.error('Erneuter Speicherversuch fehlgeschlagen:', retryError);
+            throw retryError;
+        }
     }
 }
 
@@ -58,13 +73,20 @@ try {
     });
     
     bot.on('polling_error', (error) => {
-        console.log('Bot Polling Error:', error.code);  // Log nur den Error-Code
         if (error.code === 'ETELEGRAM') {
-            // Versuche Polling neu zu starten
-            bot.stopPolling();
+            console.log('Telegram API temporär nicht erreichbar, versuche neu zu verbinden...');
             setTimeout(() => {
-                bot.startPolling();
-            }, 5000);
+                try {
+                    bot.stopPolling();
+                    setTimeout(() => {
+                        bot.startPolling();
+                    }, 5000);
+                } catch (restartError) {
+                    console.error('Fehler beim Neustart des Pollings:', restartError);
+                }
+            }, 10000);
+        } else {
+            console.error('Bot Polling Error:', error);
         }
     });
 } catch (error) {
