@@ -16,7 +16,7 @@ const USERS_FILE = process.env.NODE_ENV === 'production'
 async function loadUsers() {
     try {
         const data = await fs.readFile(USERS_FILE, 'utf8');
-        return JSON.parse(data) || {};
+        return data ? JSON.parse(data) : {};
     } catch (error) {
         if (error.code === 'ENOENT') {
             await fs.writeFile(USERS_FILE, '{}');
@@ -36,7 +36,9 @@ async function saveUsers(users) {
 }
 
 // Bot Setup
-const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+const bot = new TelegramBot(process.env.BOT_TOKEN, { 
+    polling: process.env.NODE_ENV !== 'production'  // Polling nur in Entwicklung
+});
 
 // Statische Dateien
 app.use(express.static('public'));
