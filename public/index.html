@@ -149,12 +149,13 @@
             margin-top: 10px;
         }
 
-        /* Neue Styles für den Cookie-Button */
+        /* Styles für den Cookie-Button */
         .cookie-button {
             width: 150px;
             height: 150px;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #b17a45 0%, #8b5e2e 100%);
+            background: url('bud.png') center center no-repeat;
+            background-size: contain;
             border: none;
             position: relative;
             cursor: pointer;
@@ -172,25 +173,8 @@
             touch-action: manipulation;
         }
 
-        .cookie-button::before {
-            content: '';
-            position: absolute;
-            width: 15px;
-            height: 15px;
-            background: #593315;
-            border-radius: 50%;
-            top: 30%;
-            left: 30%;
-            box-shadow: 
-                30px 15px 0 #593315,
-                60px 45px 0 #593315,
-                22px 60px 0 #593315,
-                45px 30px 0 #593315;
-        }
-
         .cookie-button:active {
             transform: scale(0.95);
-            background: radial-gradient(circle at 30% 30%, #b17a45 0%, #8b5e2e 100%);
         }
 
         .cookie-container {
