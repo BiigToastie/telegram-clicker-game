@@ -622,6 +622,65 @@
             border-radius: 50%;
             cursor: pointer;
         }
+
+        /* Insel Button */
+        .island-button {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: var(--theme-green-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .island-button:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 0 10px var(--theme-green-light);
+        }
+
+        /* Insel Overlay */
+        .island-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--tg-theme-bg-color);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .island-overlay.active {
+            display: flex;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px;
+            background: var(--theme-green-light);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
@@ -666,6 +725,7 @@
     <div class="button-container">
         <div class="cookie-container">
             <button class="cookie-button" id="clickButton"></button>
+            <div class="island-button" id="islandButton">🏝️</div>
             <div class="click-value">
                 +<span id="clickValue">1.0</span> Coins pro Klick
                 <span class="auto-click-value" id="autoClickValue" style="display: none;">
@@ -718,6 +778,11 @@
     </div>
 
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Insel Overlay -->
+    <div class="island-overlay" id="islandOverlay">
+        <button class="back-button" id="backButton">↩️ Zurück</button>
+    </div>
 
     <script>
         window.addEventListener('load', () => {
@@ -1266,6 +1331,19 @@
                     console.log('Auto-Clicker gestoppt');
                 }
             }
+
+            // Insel Setup
+            const islandButton = document.getElementById('islandButton');
+            const islandOverlay = document.getElementById('islandOverlay');
+            const backButton = document.getElementById('backButton');
+            
+            islandButton.addEventListener('click', () => {
+                islandOverlay.classList.add('active');
+            });
+            
+            backButton.addEventListener('click', () => {
+                islandOverlay.classList.remove('active');
+            });
         });
     </script>
 </body>
