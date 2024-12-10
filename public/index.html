@@ -10,9 +10,12 @@
         :root {
             --tg-theme-bg-color: #1a1a1a;
             --tg-theme-text-color: #ffffff;
-            --tg-theme-button-color: #2ea6ff;
+            --tg-theme-button-color: #4CAF50;
             --tg-theme-button-text-color: #ffffff;
             --tg-theme-secondary-bg-color: #2c2c2c;
+            --theme-green-light: #4CAF50;
+            --theme-green-dark: #2E7D32;
+            --theme-green-glow: rgba(76, 175, 80, 0.3);
         }
 
         body {
@@ -68,7 +71,7 @@
             font-size: 1.5em;
             font-weight: bold;
             margin-top: 5px;
-            color: #2ea6ff;
+            color: var(--theme-green-light);
         }
 
         .button-container {
@@ -136,7 +139,7 @@
         }
 
         .upgrade-cost {
-            background-color: #2ea6ff;
+            background-color: var(--theme-green-light);
             padding: 8px 12px;
             border-radius: 8px;
             margin-left: 10px;
@@ -204,8 +207,8 @@
 
         .auto-click-value {
             font-size: 1em;
-            color: #2ecc71;
-            background: rgba(46, 204, 113, 0.1);
+            color: var(--theme-green-light);
+            background: var(--theme-green-glow);
             padding: 3px 10px;
             border-radius: 15px;
             display: none;
@@ -261,8 +264,8 @@
         }
 
         .auto-clicker-status.active {
-            background: #2ecc71 !important;
-            box-shadow: 0 0 10px #2ecc71;
+            background: var(--theme-green-light) !important;
+            box-shadow: 0 0 10px var(--theme-green-light);
             transform: translateY(-50%) scale(1.1);
             opacity: 1;
         }
@@ -425,17 +428,17 @@
 
         .leaderboard-level {
             font-size: 0.9em;
-            color: #2ecc71;
+            color: var(--theme-green-light);
         }
 
         .leaderboard-coins {
             font-weight: bold;
-            color: #2ea6ff;
+            color: var(--theme-green-light);
             font-size: 0.9em;
         }
 
         .leaderboard-you {
-            background: rgba(46, 204, 113, 0.1);
+            background: var(--theme-green-glow);
         }
 
         /* Styles für Level und EXP Bar */
@@ -452,8 +455,8 @@
         }
 
         .level-circle {
-            background: rgba(46, 204, 113, 0.2);
-            border: 2px solid #2ecc71;
+            background: var(--theme-green-glow);
+            border: 2px solid var(--theme-green-light);
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -461,7 +464,7 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            color: #2ecc71;
+            color: var(--theme-green-light);
             margin: 0 auto;
         }
 
@@ -477,7 +480,7 @@
 
         .exp-bar {
             height: 100%;
-            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            background: linear-gradient(90deg, var(--theme-green-light), var(--theme-green-dark));
             width: 0%;
             transition: width 0.3s ease;
         }
