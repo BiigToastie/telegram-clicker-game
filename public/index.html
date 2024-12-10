@@ -625,8 +625,8 @@
 
         /* Insel Button */
         .island-button {
-            width: 30px;
-            height: 30px;
+            width: 45px;
+            height: 45px;
             background: var(--tg-theme-secondary-bg-color);
             border: none;
             border-radius: 8px;
@@ -635,6 +635,9 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: absolute;
+            right: 0;
+            font-size: 1.2em;
         }
 
         .island-button:hover {
@@ -679,10 +682,18 @@
 
         .level-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             width: 100%;
             margin-bottom: 5px;
+            position: relative;
+        }
+
+        .level-header span {
+            /* Zentriert den "Level" Text */
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
         }
     </style>
 </head>
