@@ -105,10 +105,21 @@ app.post('/api/user/:id/save', async (req, res) => {
         users[req.params.id] = {
             ...oldData,
             ...req.body,
+            upgrades: {
+                ...oldData.upgrades,
+                ...req.body.upgrades,
+                autoClicker: {
+                    ...(oldData.upgrades?.autoClicker || {}),
+                    ...(req.body.upgrades?.autoClicker || {}),
+                    enabled: req.body.upgrades?.autoClicker?.enabled ?? oldData.upgrades?.autoClicker?.enabled,
+                    lastUpdate: Date.now()
+                }
+            },
             lastUpdated: Date.now()
         };
         await saveUsers(users);
         console.log('Daten gespeichert für User:', req.params.id);
+        console.log('Auto-Clicker Status:', users[req.params.id].upgrades.autoClicker.enabled);
         res.json(users[req.params.id]);
     } catch (error) {
         console.error('Fehler beim Speichern:', error);
