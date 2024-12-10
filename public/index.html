@@ -504,6 +504,7 @@
             align-items: center;
             justify-content: center;
             gap: 5px;
+            position: relative;
         }
 
         .level-circle {
@@ -630,8 +631,7 @@
         .island-button {
             position: absolute;
             left: 20px;
-            top: 50%;
-            transform: translateY(-120%);
+            top: calc(50% - 60px);
             width: 40px;
             height: 40px;
             background: var(--tg-theme-secondary-bg-color);
@@ -1139,7 +1139,7 @@
                     showToast(`🎉 Multiplier: ${gameState.multiplier.toFixed(2)} | Nächstes: ${gameState.upgrades.multiplier.cost} Coins`);
                 } else {
                     tg.HapticFeedback.notificationOccurred('error');
-                    showToast(`��� Du brauchst ${gameState.upgrades.multiplier.cost} Coins!`, 'error');
+                    showToast(`Du brauchst ${gameState.upgrades.multiplier.cost} Coins!`, 'error');
                 }
             });
 
