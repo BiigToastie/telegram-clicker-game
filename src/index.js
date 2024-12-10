@@ -38,46 +38,32 @@ async function saveUsers(users) {
             throw new Error('Ungültige Daten');
         }
 
-        // Erstelle Verzeichnis falls es nicht existiert
-        const dir = process.env.NODE_ENV === 'production' ? '/tmp' : path.dirname(USERS_FILE);
-        try {
-            await fs.mkdir(dir, { recursive: true });
-        } catch (mkdirError) {
-            console.error('Fehler beim Erstellen des Verzeichnisses:', mkdirError);
-        }
-
-        // Speichern mit Backup-Strategie
-        const data = JSON.stringify(users, null, 2);
-        const backupFile = USERS_FILE + '.backup';
-        
-        try {
-            // Erstelle zuerst ein Backup der aktuellen Datei
-            if (await fs.access(USERS_FILE).then(() => true).catch(() => false)) {
-                await fs.copyFile(USERS_FILE, backupFile);
-            }
-            
-            // Schreibe neue Daten direkt
-            await fs.writeFile(USERS_FILE, data, { flag: 'w' });
-            
-            // Lösche Backup nach erfolgreichem Schreiben
-            if (await fs.access(backupFile).then(() => true).catch(() => false)) {
-                await fs.unlink(backupFile);
-            }
-        } catch (writeError) {
-            console.error('Fehler beim Schreiben:', writeError);
-            
-            // Versuche Backup wiederherzustellen
-            if (await fs.access(backupFile).then(() => true).catch(() => false)) {
-                await fs.copyFile(backupFile, USERS_FILE);
-            }
-            throw writeError;
-        }
+        // Einfaches direktes Speichern
+        await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
 
     } catch (error) {
         console.error('Fehler beim Speichern:', error);
-        throw error;
+        // Versuche es erneut nach kurzer Verzögerung
+        await new Promise(resolve => setTimeout(resolve, 100));
+        try {
+            await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
+        } catch (retryError) {
+            console.error('Erneuter Speicherversuch fehlgeschlagen:', retryError);
+        }
     }
 }
+
+// Initialisiere die Datei beim Start
+(async () => {
+    try {
+        await fs.writeFile(USERS_FILE, '{}', { flag: 'wx' });
+        console.log('Neue Benutzerdatei erstellt');
+    } catch (error) {
+        if (error.code !== 'EEXIST') {
+            console.error('Fehler beim Initialisieren der Benutzerdatei:', error);
+        }
+    }
+})();
 
 let bot;
 try {
