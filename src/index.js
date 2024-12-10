@@ -8,20 +8,31 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Render.com erlaubt Schreibzugriff im /tmp Verzeichnis
-const USERS_FILE = process.env.NODE_ENV === 'production' 
-    ? '/tmp/users.json'
-    : path.join(__dirname, '../data/users.json');
+const USERS_FILE = '/tmp/users.json';
+const BACKUP_FILE = '/tmp/users_backup.json';
 
 // Hilfsfunktionen für die Datenspeicherung
 async function loadUsers() {
     try {
-        const data = await fs.readFile(USERS_FILE, 'utf8');
-        return data ? JSON.parse(data) : {};
-    } catch (error) {
-        if (error.code === 'ENOENT') {
-            await fs.writeFile(USERS_FILE, '{}');
-            return {};
+        // Versuche zuerst die Hauptdatei zu laden
+        try {
+            const data = await fs.readFile(USERS_FILE, 'utf8');
+            return JSON.parse(data);
+        } catch (mainError) {
+            // Wenn Hauptdatei nicht existiert, versuche Backup
+            try {
+                const backupData = await fs.readFile(BACKUP_FILE, 'utf8');
+                // Wenn Backup geladen wurde, stelle es als Hauptdatei wieder her
+                await fs.writeFile(USERS_FILE, backupData);
+                return JSON.parse(backupData);
+            } catch (backupError) {
+                // Wenn auch kein Backup existiert, erstelle neue Datei
+                const emptyData = '{}';
+                await fs.writeFile(USERS_FILE, emptyData);
+                return {};
+            }
         }
+    } catch (error) {
         console.error('Fehler beim Laden:', error);
         return {};
     }
@@ -29,7 +40,12 @@ async function loadUsers() {
 
 async function saveUsers(users) {
     try {
-        await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
+        const data = JSON.stringify(users, null, 2);
+        // Speichere in Hauptdatei und Backup
+        await Promise.all([
+            fs.writeFile(USERS_FILE, data),
+            fs.writeFile(BACKUP_FILE, data)
+        ]);
     } catch (error) {
         console.error('Fehler beim Speichern:', error);
     }
@@ -48,7 +64,7 @@ app.use(express.json());
 app.get('/api/user/:id', async (req, res) => {
     try {
         const users = await loadUsers();
-        const user = users[req.params.id] || {
+        users[req.params.id] = {
             coins: 0,
             multiplier: 0.1,
             level: {
@@ -71,10 +87,13 @@ app.get('/api/user/:id', async (req, res) => {
                     costIncrease: 1.5,
                     lastUpdate: Date.now()
                 }
-            }
+            },
+            ...users[req.params.id]
         };
-        res.json(user);
+        await saveUsers(users);
+        res.json(users[req.params.id]);
     } catch (error) {
+        console.error('Fehler beim Laden des Users:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -82,13 +101,17 @@ app.get('/api/user/:id', async (req, res) => {
 app.post('/api/user/:id/save', async (req, res) => {
     try {
         const users = await loadUsers();
+        const oldData = users[req.params.id] || {};
         users[req.params.id] = {
+            ...oldData,
             ...req.body,
             lastUpdated: Date.now()
         };
         await saveUsers(users);
+        console.log('Daten gespeichert für User:', req.params.id);
         res.json(users[req.params.id]);
     } catch (error) {
+        console.error('Fehler beim Speichern:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -111,18 +134,6 @@ app.get('/api/leaderboard', async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
-
-// Backup alle 5 Minuten
-setInterval(async () => {
-    try {
-        const users = await loadUsers();
-        const backupPath = '/tmp/users_backup.json';
-        await fs.writeFile(backupPath, JSON.stringify(users));
-        console.log('Backup erstellt:', new Date().toISOString());
-    } catch (error) {
-        console.error('Backup error:', error);
-    }
-}, 5 * 60 * 1000);
 
 // Start Server
 app.listen(PORT, () => {
