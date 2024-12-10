@@ -629,8 +629,8 @@
         /* Insel Button */
         .island-button {
             position: fixed;
-            right: 20px;
-            top: 80px;
+            left: 20px;
+            top: calc(50% - 50px);  /* 50px über dem Auto-Clicker */
             width: 40px;
             height: 40px;
             background: var(--tg-theme-secondary-bg-color);
@@ -642,6 +642,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 1.2em;
+            z-index: 100;
         }
 
         .island-button:hover {
