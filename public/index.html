@@ -494,6 +494,8 @@
         .level-card {
             grid-column: 1 / -1;
             order: -1;
+            position: relative;
+            padding: 15px;
         }
 
         .level-display {
@@ -636,7 +638,9 @@
             cursor: pointer;
             transition: all 0.3s ease;
             position: absolute;
-            right: 0;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
             font-size: 1.2em;
         }
 
@@ -685,12 +689,12 @@
             justify-content: center;
             align-items: center;
             width: 100%;
-            margin-bottom: 5px;
             position: relative;
+            margin-bottom: 10px;
+            min-height: 45px;
         }
 
         .level-header span {
-            /* Zentriert den "Level" Text */
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
@@ -1280,7 +1284,7 @@
                     gameState.level.exp -= gameState.level.nextLevel;
                     gameState.level.current++;
                     gameState.level.nextLevel = calculateExpForNextLevel(gameState.level.current);
-                    showToast(`���� Level Up! Du bist jetzt Level ${gameState.level.current}!\nNächstes Level: ${gameState.level.nextLevel} EXP`);
+                    showToast(`🎉 Level Up! Du bist jetzt Level ${gameState.level.current}!\nNächstes Level: ${gameState.level.nextLevel} EXP`);
                 }
                 updateDisplay();
             }
