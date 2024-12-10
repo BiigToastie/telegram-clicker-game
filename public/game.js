@@ -1,116 +1,93 @@
-class ClickerGame {
+// Fluid Particle Animation
+class FluidBackground {
     constructor() {
-        this.coins = 0;
-        this.multiplier = 1.0;
-        this.upgrades = [
-            { id: 'multiplier', name: 'Multiplier', baseCost: 10, cost: 10, increment: 0.1 }
+        this.canvas = document.createElement('canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.particles = [];
+        this.numParticles = 50;
+        
+        // Styling
+        this.canvas.style.position = 'fixed';
+        this.canvas.style.top = '0';
+        this.canvas.style.left = '0';
+        this.canvas.style.width = '100%';
+        this.canvas.style.height = '100%';
+        this.canvas.style.zIndex = '-1';
+        this.canvas.style.opacity = '0.3';
+        
+        // Colors
+        this.colors = [
+            '#4CAF50', // Light green
+            '#43A047',
+            '#388E3C',
+            '#2E7D32', // Dark green
+            '#1B5E20'  // Very dark green
         ];
-        this.setupGame();
+        
+        document.body.insertBefore(this.canvas, document.body.firstChild);
+        
+        this.resize();
+        this.init();
+        this.animate();
+        
+        window.addEventListener('resize', () => this.resize());
     }
-
-    setupGame() {
-        this.initTelegram();
-        this.setupEventListeners();
-        this.updateUI();
+    
+    resize() {
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
     }
-
-    initTelegram() {
-        if (typeof TelegramGameProxy !== 'undefined') {
-            try {
-                // Set up score sharing
-                TelegramGameProxy.shareScore = () => {
-                    return Math.floor(this.coins);
-                };
-
-                // Set up score updating
-                TelegramGameProxy.setScore = (score) => {
-                    return fetch('/scores', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            userId: this.getUserId(),
-                            score: score
-                        })
-                    });
-                };
-            } catch (error) {
-                console.error('Error initializing Telegram game:', error);
-            }
+    
+    init() {
+        this.particles = [];
+        for (let i = 0; i < this.numParticles; i++) {
+            this.particles.push({
+                x: Math.random() * this.width,
+                y: Math.random() * this.height,
+                radius: Math.random() * 100 + 50,
+                color: this.colors[Math.floor(Math.random() * this.colors.length)],
+                vx: Math.random() * 0.2 - 0.1,
+                vy: Math.random() * 0.2 - 0.1,
+                phase: Math.random() * Math.PI * 2
+            });
         }
     }
-
-    getUserId() {
-        const params = new URLSearchParams(window.location.search);
-        return params.get('user') || 'anonymous';
-    }
-
-    setupEventListeners() {
-        document.getElementById('coin').addEventListener('click', () => this.handleClick());
-        this.renderUpgrades();
-    }
-
-    handleClick() {
-        this.coins += this.multiplier;
-        this.createFloatingText();
-        this.updateUI();
-        this.saveProgress();
-    }
-
-    createFloatingText() {
-        const coin = document.getElementById('coin');
-        const text = document.createElement('div');
-        text.className = 'floating-text';
-        text.textContent = `+${this.multiplier.toFixed(1)}`;
+    
+    animate() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
         
-        const rect = coin.getBoundingClientRect();
-        text.style.left = `${rect.left + rect.width / 2}px`;
-        text.style.top = `${rect.top}px`;
+        // Update and draw particles
+        this.particles.forEach(p => {
+            // Update position
+            p.x += p.vx;
+            p.y += p.vy;
+            p.phase += 0.01;
+            
+            // Bounce off walls
+            if (p.x < -p.radius) p.x = this.width + p.radius;
+            if (p.x > this.width + p.radius) p.x = -p.radius;
+            if (p.y < -p.radius) p.y = this.height + p.radius;
+            if (p.y > this.height + p.radius) p.y = -p.radius;
+            
+            // Draw particle
+            this.ctx.beginPath();
+            const radius = p.radius * (1 + Math.sin(p.phase) * 0.2);
+            const gradient = this.ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
+            gradient.addColorStop(0, p.color + '40'); // 25% opacity
+            gradient.addColorStop(1, p.color + '00'); // 0% opacity
+            
+            this.ctx.fillStyle = gradient;
+            this.ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+            this.ctx.fill();
+        });
         
-        document.body.appendChild(text);
-        
-        setTimeout(() => text.remove(), 1000);
-    }
-
-    buyUpgrade(upgradeId) {
-        const upgrade = this.upgrades.find(u => u.id === upgradeId);
-        if (upgrade && this.coins >= upgrade.cost) {
-            this.coins -= upgrade.cost;
-            this.multiplier += upgrade.increment;
-            upgrade.cost = Math.round(upgrade.cost * 1.5);
-            this.updateUI();
-            this.saveProgress();
-        }
-    }
-
-    renderUpgrades() {
-        const container = document.getElementById('upgrades');
-        container.innerHTML = this.upgrades.map(upgrade => `
-            <button 
-                class="upgrade-button" 
-                onclick="game.buyUpgrade('${upgrade.id}')"
-                ${this.coins < upgrade.cost ? 'disabled' : ''}>
-                ${upgrade.name} (${upgrade.cost} Coins)
-            </button>
-        `).join('');
-    }
-
-    updateUI() {
-        document.getElementById('coins').textContent = this.coins.toFixed(1);
-        document.getElementById('multiplier').textContent = this.multiplier.toFixed(1);
-        this.renderUpgrades();
-    }
-
-    saveProgress() {
-        const score = Math.floor(this.coins);
-        if (typeof TelegramGameProxy !== 'undefined') {
-            TelegramGameProxy.setScore(score);
-        }
+        requestAnimationFrame(() => this.animate());
     }
 }
 
-// Initialize game after DOM is fully loaded
+// Start animation when document is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.game = new ClickerGame();
+    new FluidBackground();
 });
