@@ -13,6 +13,91 @@
     <style>
         /* All existing styles remain unchanged */
         /* ... */
+
+        /* Neue Styles für das Insel-Feature (am Ende der style-Tags hinzufügen) */
+        /* Insel Grid Layout */
+        .island-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 15px;
+            margin-top: 60px;
+        }
+
+        /* Ressourcen Bar */
+        .island-resources {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            background: var(--tg-theme-secondary-bg-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-around;
+            z-index: 1000;
+            border-bottom: 2px solid var(--theme-green-dark);
+        }
+
+        /* Rest der neuen Styles für das Insel-Feature */
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9em;
+        }
+
+        .building-card {
+            background: var(--tg-theme-secondary-bg-color);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: transform 0.2s;
+            border: 1px solid var(--theme-green-dark);
+        }
+
+        .building-card:active {
+            transform: scale(0.98);
+        }
+
+        .building-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .building-title {
+            font-weight: bold;
+            color: var(--theme-green-light);
+        }
+
+        .building-level {
+            background: var(--theme-green-dark);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+        }
+
+        .building-info {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .building-action {
+            background: var(--theme-green-light);
+            border: none;
+            padding: 8px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .building-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -21,10 +106,11 @@
     <!-- Insel Overlay -->
     <div class="island-overlay" id="islandOverlay">
         <button class="back-button" id="backButton">↩️ Zurück</button>
+
         <div class="island-resources">
             <div class="resource-item">
                 <span>🌿 Pflanzen:</span>
-                <span id="plantsCount">0</span>
+                <span id="plantCount">0</span>
             </div>
             <div class="resource-item">
                 <span>💰 Credits:</span>
@@ -32,33 +118,51 @@
             </div>
             <div class="resource-item">
                 <span>📦 Lager:</span>
-                <span id="storageSpace">0/100</span>
+                <span id="storage">0/100</span>
             </div>
         </div>
+
         <div class="island-grid">
             <!-- Plantage -->
-            <div class="building-card" id="plantation">
-                <div class="building-icon">🌱</div>
-                <div class="building-info">
-                    <div class="building-name">Plantage</div>
-                    <div class="building-cost">100 Credits</div>
-    </div>
-            </div>
-            <!-- Lagerhaus -->
-            <div class="building-card" id="storage">
-                <div class="building-icon">🏠</div>
-                <div class="building-info">
-                    <div class="building-name">Lagerhaus</div>
-                    <div class="building-cost">250 Credits</div>
-    </div>
-            </div>
-            <!-- Verkaufsstand -->
-            <div class="building-card" id="shop">
-                <div class="building-icon">🏪</div>
-                <div class="building-info">
-                    <div class="building-name">Verkaufsstand</div>
-                    <div class="building-cost">500 Credits</div>
+            <div class="building-card">
+                <div class="building-header">
+                    <span class="building-title">🌱 Plantage</span>
+                    <span class="building-level">Lvl. <span id="plantationLevel">1</span></span>
         </div>
+                <div class="building-info">
+                    Produziert alle 30s eine Pflanze
+    </div>
+                <button class="building-action" id="upgradePlantation">
+                    Upgrade (100 💰)
+                </button>
+            </div>
+
+            <!-- Lagerhaus -->
+            <div class="building-card">
+                <div class="building-header">
+                    <span class="building-title">📦 Lagerhaus</span>
+                    <span class="building-level">Lvl. <span id="storageLevel">1</span></span>
+        </div>
+                <div class="building-info">
+                    Erhöht die Lagerkapazität
+    </div>
+                <button class="building-action" id="upgradeStorage">
+                    Upgrade (150 💰)
+                </button>
+            </div>
+
+            <!-- Verkaufsstand -->
+            <div class="building-card">
+                <div class="building-header">
+                    <span class="building-title">💰 Verkauf</span>
+                    <span class="building-level">Lvl. <span id="shopLevel">1</span></span>
+        </div>
+                <div class="building-info">
+                    Verkauft Pflanzen für Credits
+            </div>
+                <button class="building-action" id="sellPlants">
+                    Verkaufen
+                </button>
             </div>
         </div>
     </div>
@@ -67,57 +171,6 @@
 
     <script>
         // All existing JavaScript code remains unchanged
-        
-        // Insel Spielzustand
-        let islandState = {
-            credits: 0,
-            plants: 0,
-            storage: {
-                capacity: 100,
-                used: 0
-            },
-            buildings: {
-                plantations: 0,
-                storages: 0,
-                shops: 0
-            },
-            multipliers: {
-                production: 1,
-                storage: 1,
-                sales: 1
-            }
-        };
-
-        // Event Listener für Gebäude
-        document.getElementById('plantation').addEventListener('click', () => {
-            if (islandState.credits >= 100) {
-                islandState.credits -= 100;
-                islandState.buildings.plantations++;
-                updateIslandDisplay();
-                showToast('🌱 Neue Plantage gebaut!');
-            } else {
-                showToast('❌ Nicht genug Credits!', 'error');
-            }
-        });
-
-        // Automatische Produktion
-        setInterval(() => {
-            if (islandState.buildings.plantations > 0) {
-                const production = islandState.buildings.plantations * islandState.multipliers.production;
-                if (islandState.storage.used + production <= islandState.storage.capacity) {
-                    islandState.plants += production;
-                    islandState.storage.used += production;
-                    updateIslandDisplay();
-                }
-            }
-        }, 1000);
-
-        function updateIslandDisplay() {
-            document.getElementById('plantsCount').textContent = Math.floor(islandState.plants);
-            document.getElementById('islandCredits').textContent = Math.floor(islandState.credits);
-            document.getElementById('storageSpace').textContent = 
-                `${Math.floor(islandState.storage.used)}/${islandState.storage.capacity}`;
-        }
     </script>
 </body>
 </html>
