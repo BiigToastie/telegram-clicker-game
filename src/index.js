@@ -78,11 +78,19 @@ try {
     
     let pollingRetries = 0;
     const MAX_RETRIES = 5;
+    let lastErrorTime = 0;
+    const ERROR_COOLDOWN = 60000; // 1 Minute Cooldown zwischen Fehlermeldungen
 
     bot.on('polling_error', (error) => {
         if (error.code === 'ETELEGRAM') {
             pollingRetries++;
-            console.log(`Telegram API nicht erreichbar (Versuch ${pollingRetries}/${MAX_RETRIES})...`);
+            
+            // Prüfe ob genug Zeit seit der letzten Fehlermeldung vergangen ist
+            const now = Date.now();
+            if (now - lastErrorTime > ERROR_COOLDOWN) {
+                console.log(`Telegram API nicht erreichbar (Versuch ${pollingRetries}/${MAX_RETRIES})...`);
+                lastErrorTime = now;
+            }
             
             if (pollingRetries <= MAX_RETRIES) {
                 setTimeout(() => {
@@ -92,14 +100,15 @@ try {
                             bot.startPolling();
                         }, 5000);
                     } catch (restartError) {
-                        console.error('Fehler beim Neustart des Pollings:', restartError);
+                        // Fehler beim Neustart still behandeln
                     }
                 }, 10000);
             } else {
-                console.error('Maximale Anzahl an Verbindungsversuchen erreicht.');
+                // Still fehlschlagen
+                pollingRetries = 0; // Reset für nächsten Versuch
             }
         } else {
-            console.error('Bot Polling Error:', error);
+            // Andere Fehler still behandeln
         }
     });
 
