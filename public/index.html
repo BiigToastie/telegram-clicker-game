@@ -294,7 +294,7 @@
 
         /* Auto-Clicker Status Button */
         .auto-clicker-status {
-            position: fixed;
+            position: absolute;
             left: 20px;
             top: 50%;
             transform: translateY(-50%);
@@ -628,9 +628,10 @@
 
         /* Insel Button */
         .island-button {
-            position: fixed;
+            position: absolute;
             left: 20px;
-            top: calc(50% - 50px);  /* 50px über dem Auto-Clicker */
+            top: 50%;
+            transform: translateY(-120%);
             width: 40px;
             height: 40px;
             background: var(--tg-theme-secondary-bg-color);
@@ -1138,7 +1139,7 @@
                     showToast(`🎉 Multiplier: ${gameState.multiplier.toFixed(2)} | Nächstes: ${gameState.upgrades.multiplier.cost} Coins`);
                 } else {
                     tg.HapticFeedback.notificationOccurred('error');
-                    showToast(`❌ Du brauchst ${gameState.upgrades.multiplier.cost} Coins!`, 'error');
+                    showToast(`��� Du brauchst ${gameState.upgrades.multiplier.cost} Coins!`, 'error');
                 }
             });
 
