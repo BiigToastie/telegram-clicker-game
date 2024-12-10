@@ -500,9 +500,10 @@
 
         .level-display {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
-            gap: 4px;
+            justify-content: center;
+            gap: 15px;
         }
 
         .level-circle {
@@ -627,21 +628,19 @@
 
         /* Insel Button */
         .island-button {
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             background: var(--tg-theme-secondary-bg-color);
-            border: none;
-            border-radius: 8px;
+            border: 2px solid var(--theme-green-light);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
             font-size: 1.2em;
+            position: static;
+            transform: none;
         }
 
         .island-button:hover {
@@ -672,7 +671,7 @@
             top: 20px;
             left: 20px;
             padding: 10px;
-            background: var(--theme-green-light);
+            background: #e74c3c;
             border: none;
             border-radius: 8px;
             color: white;
@@ -685,19 +684,8 @@
         }
 
         .level-header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            position: relative;
+            text-align: center;
             margin-bottom: 10px;
-            min-height: 45px;
-        }
-
-        .level-header span {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
         }
     </style>
 </head>
