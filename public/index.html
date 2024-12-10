@@ -7,6 +7,9 @@
     <title>Clicker Game</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="game.js"></script>
+    <audio id="bgMusic" loop>
+        <source src="music/background.mp3" type="audio/mp3">
+    </audio>
     <style>
         :root {
             --tg-theme-bg-color: #1a1a1a;
@@ -559,9 +562,76 @@
         .leaderboard-list::-webkit-scrollbar-thumb:hover {
             background: rgba(255,255,255,0.3);
         }
+
+        /* Musik Controller */
+        .music-control {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background: var(--tg-theme-secondary-bg-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .music-control:hover {
+            transform: scale(1.1);
+        }
+
+        .music-control.muted {
+            opacity: 0.5;
+        }
+
+        .volume-slider {
+            position: absolute;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100px;
+            height: 20px;
+            background: var(--tg-theme-secondary-bg-color);
+            border-radius: 10px;
+            padding: 0 10px;
+            display: none;
+        }
+
+        .music-control:hover .volume-slider {
+            display: block;
+        }
+
+        .volume-slider input {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 3px;
+            background: var(--theme-green-light);
+            outline: none;
+            margin-top: 8px;
+        }
+
+        .volume-slider input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            background: var(--theme-green-light);
+            border-radius: 50%;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <div class="music-control" id="musicControl">
+        🎵
+        <div class="volume-slider">
+            <input type="range" id="volumeSlider" min="0" max="100" value="50">
+        </div>
+    </div>
+
     <div class="header">
         <h1>BudsKlicker</h1>
         <p>Klicke und sammle Coins, kaufe Upgrades im Shop!</p>
@@ -655,6 +725,39 @@
             tg.expand();
             tg.ready();
             
+            // Musik-Setup
+            const bgMusic = document.getElementById('bgMusic');
+            const musicControl = document.getElementById('musicControl');
+            const volumeSlider = document.getElementById('volumeSlider');
+            
+            // Setze initiale Lautstärke
+            bgMusic.volume = 0.5;
+            
+            // Musik starten wenn bereit
+            bgMusic.addEventListener('canplaythrough', () => {
+                bgMusic.play().catch(error => {
+                    console.log('Autoplay prevented:', error);
+                });
+            });
+            
+            // Lautstärke-Kontrolle
+            volumeSlider.addEventListener('input', (e) => {
+                const volume = e.target.value / 100;
+                bgMusic.volume = volume;
+                musicControl.classList.toggle('muted', volume === 0);
+            });
+            
+            // Musik Toggle
+            musicControl.addEventListener('click', () => {
+                if (bgMusic.paused) {
+                    bgMusic.play();
+                    musicControl.classList.remove('muted');
+                } else {
+                    bgMusic.pause();
+                    musicControl.classList.add('muted');
+                }
+            });
+
             let gameState = {
                 coins: 0,
                 multiplier: 0.1,
