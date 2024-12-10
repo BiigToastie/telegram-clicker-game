@@ -46,18 +46,36 @@ async function saveUsers(users) {
             console.error('Fehler beim Erstellen des Verzeichnisses:', mkdirError);
         }
 
-        // Direktes Speichern ohne temporäre Datei
-        await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2), { flag: 'w' });
+        // Speichern mit Backup-Strategie
+        const data = JSON.stringify(users, null, 2);
+        const backupFile = USERS_FILE + '.backup';
+        
+        try {
+            // Erstelle zuerst ein Backup der aktuellen Datei
+            if (await fs.access(USERS_FILE).then(() => true).catch(() => false)) {
+                await fs.copyFile(USERS_FILE, backupFile);
+            }
+            
+            // Schreibe neue Daten direkt
+            await fs.writeFile(USERS_FILE, data, { flag: 'w' });
+            
+            // Lösche Backup nach erfolgreichem Schreiben
+            if (await fs.access(backupFile).then(() => true).catch(() => false)) {
+                await fs.unlink(backupFile);
+            }
+        } catch (writeError) {
+            console.error('Fehler beim Schreiben:', writeError);
+            
+            // Versuche Backup wiederherzustellen
+            if (await fs.access(backupFile).then(() => true).catch(() => false)) {
+                await fs.copyFile(backupFile, USERS_FILE);
+            }
+            throw writeError;
+        }
 
     } catch (error) {
         console.error('Fehler beim Speichern:', error);
-        // Versuche es erneut mit direktem Schreiben
-        try {
-            await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
-        } catch (retryError) {
-            console.error('Erneuter Speicherversuch fehlgeschlagen:', retryError);
-            throw retryError;
-        }
+        throw error;
     }
 }
 
@@ -72,22 +90,35 @@ try {
         }
     });
     
+    let pollingRetries = 0;
+    const MAX_RETRIES = 5;
+
     bot.on('polling_error', (error) => {
         if (error.code === 'ETELEGRAM') {
-            console.log('Telegram API temporär nicht erreichbar, versuche neu zu verbinden...');
-            setTimeout(() => {
-                try {
-                    bot.stopPolling();
-                    setTimeout(() => {
-                        bot.startPolling();
-                    }, 5000);
-                } catch (restartError) {
-                    console.error('Fehler beim Neustart des Pollings:', restartError);
-                }
-            }, 10000);
+            pollingRetries++;
+            console.log(`Telegram API nicht erreichbar (Versuch ${pollingRetries}/${MAX_RETRIES})...`);
+            
+            if (pollingRetries <= MAX_RETRIES) {
+                setTimeout(() => {
+                    try {
+                        bot.stopPolling();
+                        setTimeout(() => {
+                            bot.startPolling();
+                        }, 5000);
+                    } catch (restartError) {
+                        console.error('Fehler beim Neustart des Pollings:', restartError);
+                    }
+                }, 10000);
+            } else {
+                console.error('Maximale Anzahl an Verbindungsversuchen erreicht.');
+            }
         } else {
             console.error('Bot Polling Error:', error);
         }
+    });
+
+    bot.on('polling_error', () => {
+        pollingRetries = 0; // Reset counter on successful connection
     });
 } catch (error) {
     console.error('Bot Initialization Error:', error);
