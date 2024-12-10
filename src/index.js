@@ -236,3 +236,24 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server läuft auf Port ${PORT}`);
     console.log('Bot ist aktiv...');
 });
+
+// Backup alle 5 Minuten
+setInterval(async () => {
+    try {
+        const users = await loadUsers();
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        await fs.writeFile(
+            `/tmp/users_backup_${timestamp}.json`,
+            JSON.stringify(users)
+        );
+        // Behalte nur die letzten 5 Backups
+        const backups = await fs.readdir('/tmp');
+        const userBackups = backups.filter(f => f.startsWith('users_backup_'));
+        if (userBackups.length > 5) {
+            const oldestBackup = userBackups.sort()[0];
+            await fs.unlink(`/tmp/${oldestBackup}`);
+        }
+    } catch (error) {
+        console.error('Backup error:', error);
+    }
+}, 5 * 60 * 1000);
