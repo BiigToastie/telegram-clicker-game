@@ -625,25 +625,20 @@
 
         /* Insel Button */
         .island-button {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 40px;
-            height: 40px;
-            background: var(--theme-green-light);
-            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            background: var(--tg-theme-secondary-bg-color);
+            border: none;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
-            z-index: 100;
         }
 
         .island-button:hover {
-            transform: translateY(-50%) scale(1.1);
+            transform: scale(1.1);
             box-shadow: 0 0 10px var(--theme-green-light);
         }
 
@@ -681,6 +676,14 @@
         .back-button:hover {
             transform: scale(1.1);
         }
+
+        .level-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -703,7 +706,10 @@
         </div>
         <div class="stat-card level-card">
             <div class="level-display">
-                <div>Level</div>
+                <div class="level-header">
+                    <span>Level</span>
+                    <button class="island-button" id="islandButton">🏝️</button>
+                </div>
                 <div class="level-circle" id="levelDisplay">0</div>
             </div>
             <div style="font-size: 0.8em; opacity: 0.8; margin-top: 2px;">
@@ -725,7 +731,6 @@
     <div class="button-container">
         <div class="cookie-container">
             <button class="cookie-button" id="clickButton"></button>
-            <div class="island-button" id="islandButton">🏝️</div>
             <div class="click-value">
                 +<span id="clickValue">1.0</span> Coins pro Klick
                 <span class="auto-click-value" id="autoClickValue" style="display: none;">
