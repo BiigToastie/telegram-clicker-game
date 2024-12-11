@@ -61,7 +61,10 @@ app.get('/api/user/:id', async (req, res) => {
     try {
         const user = await db.collection('users').findOne({ 
             telegramId: req.params.id 
-        }) || {
+        });
+
+        // Standardwerte wenn kein User gefunden
+        const defaultUser = {
             coins: 0,
             multiplier: 0.1,
             level: {
@@ -86,7 +89,22 @@ app.get('/api/user/:id', async (req, res) => {
                 }
             }
         };
-        res.json(user);
+
+        // Merge existierende Daten mit Standardwerten
+        const userData = user ? {
+            ...defaultUser,
+            ...user,
+            level: {
+                ...defaultUser.level,
+                ...user.level
+            },
+            upgrades: {
+                ...defaultUser.upgrades,
+                ...user.upgrades
+            }
+        } : defaultUser;
+
+        res.json(userData);
     } catch (error) {
         console.error('Fehler beim Laden des Users:', error);
         res.status(500).json({ error: 'Server error' });
@@ -116,11 +134,32 @@ app.get('/api/leaderboard', async (req, res) => {
     try {
         const leaderboard = await db.collection('users')
             .find({})
-            .sort({ coins: -1 })
+            .sort({ 
+                'level.current': -1,  // Erst nach Level sortieren
+                coins: -1             // Dann nach Coins
+            })
             .limit(100)
+            .project({
+                telegramId: 1,
+                name: 1,
+                username: 1,
+                coins: 1,
+                'level.current': 1    // Explizit das Level-Feld auswählen
+            })
             .toArray();
-        res.json(leaderboard);
+
+        // Formatiere die Daten korrekt
+        const formattedLeaderboard = leaderboard.map(user => ({
+            id: user.telegramId,
+            name: user.name || 'Unbekannter Spieler',
+            username: user.username || '',
+            coins: Number(user.coins || 0),
+            level: Number(user?.level?.current || 0)
+        }));
+
+        res.json(formattedLeaderboard);
     } catch (error) {
+        console.error('Leaderboard Fehler:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });
