@@ -2,50 +2,46 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const TelegramBot = require('node-telegram-bot-api');
-const fs = require('fs').promises;
+const { MongoClient } = require('mongodb');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Render.com erlaubt Schreibzugriff im /tmp Verzeichnis
-const USERS_FILE = '/tmp/users.json';
-const BACKUP_FILE = '/tmp/users_backup.json';
+// MongoDB Verbindung
+const client = new MongoClient(process.env.MONGODB_URI);
+let db;
 
-// Hilfsfunktionen für die Datenspeicherung
+// Verbindung zur Datenbank
+async function connectDB() {
+    try {
+        await client.connect();
+        db = client.db('clickerdb');
+        console.log('MongoDB verbunden');
+    } catch (error) {
+        console.error('DB Fehler:', error);
+    }
+}
+
 async function loadUsers() {
     try {
-        // Versuche zuerst die Hauptdatei zu laden
-        try {
-            const data = await fs.readFile(USERS_FILE, 'utf8');
-            return JSON.parse(data);
-        } catch (mainError) {
-            // Wenn Hauptdatei nicht existiert, versuche Backup
-            try {
-                const backupData = await fs.readFile(BACKUP_FILE, 'utf8');
-                // Wenn Backup geladen wurde, stelle es als Hauptdatei wieder her
-                await fs.writeFile(USERS_FILE, backupData);
-                return JSON.parse(backupData);
-            } catch (backupError) {
-                // Wenn auch kein Backup existiert, erstelle neue Datei
-                const emptyData = '{}';
-                await fs.writeFile(USERS_FILE, emptyData);
-                return {};
-            }
-        }
+        const users = await db.collection('users').find().toArray();
+        return users.reduce((acc, user) => {
+            acc[user.telegramId] = user;
+            return acc;
+        }, {});
     } catch (error) {
         console.error('Fehler beim Laden:', error);
         return {};
     }
 }
 
-async function saveUsers(users) {
+async function saveUser(telegramId, userData) {
     try {
-        const data = JSON.stringify(users, null, 2);
-        // Speichere in Hauptdatei und Backup
-        await Promise.all([
-            fs.writeFile(USERS_FILE, data),
-            fs.writeFile(BACKUP_FILE, data)
-        ]);
+        await db.collection('users').updateOne(
+            { telegramId },
+            { $set: userData },
+            { upsert: true }
+        );
     } catch (error) {
         console.error('Fehler beim Speichern:', error);
     }
@@ -63,8 +59,9 @@ app.use(express.json());
 // API Routen
 app.get('/api/user/:id', async (req, res) => {
     try {
-        const users = await loadUsers();
-        users[req.params.id] = {
+        const user = await db.collection('users').findOne({ 
+            telegramId: req.params.id 
+        }) || {
             coins: 0,
             multiplier: 0.1,
             level: {
@@ -87,11 +84,9 @@ app.get('/api/user/:id', async (req, res) => {
                     costIncrease: 1.5,
                     lastUpdate: Date.now()
                 }
-            },
-            ...users[req.params.id]
+            }
         };
-        await saveUsers(users);
-        res.json(users[req.params.id]);
+        res.json(user);
     } catch (error) {
         console.error('Fehler beim Laden des Users:', error);
         res.status(500).json({ error: 'Server error' });
@@ -100,16 +95,17 @@ app.get('/api/user/:id', async (req, res) => {
 
 app.post('/api/user/:id/save', async (req, res) => {
     try {
-        const users = await loadUsers();
-        const oldData = users[req.params.id] || {};
-        users[req.params.id] = {
-            ...oldData,
+        const userData = {
+            telegramId: req.params.id,
             ...req.body,
             lastUpdated: Date.now()
         };
-        await saveUsers(users);
-        console.log('Daten gespeichert für User:', req.params.id);
-        res.json(users[req.params.id]);
+        await db.collection('users').updateOne(
+            { telegramId: req.params.id },
+            { $set: userData },
+            { upsert: true }
+        );
+        res.json(userData);
     } catch (error) {
         console.error('Fehler beim Speichern:', error);
         res.status(500).json({ error: 'Server error' });
@@ -118,17 +114,11 @@ app.post('/api/user/:id/save', async (req, res) => {
 
 app.get('/api/leaderboard', async (req, res) => {
     try {
-        const users = await loadUsers();
-        const leaderboard = Object.entries(users)
-            .map(([id, user]) => ({
-                id,
-                name: user.name || 'Unbekannter Spieler',
-                username: user.username || '',
-                coins: user.coins || 0,
-                level: user.level?.current || 0
-            }))
-            .sort((a, b) => b.coins - a.coins)
-            .slice(0, 100);
+        const leaderboard = await db.collection('users')
+            .find({})
+            .sort({ coins: -1 })
+            .limit(100)
+            .toArray();
         res.json(leaderboard);
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
@@ -136,6 +126,7 @@ app.get('/api/leaderboard', async (req, res) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+    await connectDB();
     console.log(`Server läuft auf Port ${PORT}`);
 });
