@@ -717,7 +717,6 @@
             <div class="level-display">
                 <div class="level-header">
                     <span>Level</span>
-                    <button class="island-button" id="islandButton">🏝️</button>
                 </div>
                 <div class="level-circle" id="levelDisplay">0</div>
             </div>
@@ -792,11 +791,6 @@
     </div>
 
     <div class="toast-container" id="toastContainer"></div>
-
-    <!-- Insel Overlay -->
-    <div class="island-overlay" id="islandOverlay">
-        <button class="back-button" id="backButton">↩️ Zurück</button>
-    </div>
 
     <script>
         window.addEventListener('load', () => {
@@ -1345,19 +1339,6 @@
                     console.log('Auto-Clicker gestoppt');
                 }
             }
-
-            // Insel Setup
-            const islandButton = document.getElementById('islandButton');
-            const islandOverlay = document.getElementById('islandOverlay');
-            const backButton = document.getElementById('backButton');
-            
-            islandButton.addEventListener('click', () => {
-                islandOverlay.classList.add('active');
-            });
-            
-            backButton.addEventListener('click', () => {
-                islandOverlay.classList.remove('active');
-            });
         });
     </script>
 </body>
